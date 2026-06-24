@@ -7,5 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # включение заголовочных файлов
 include_directories(include)
+file(GLOB tools_src_files "tools/*.cpp")
+
+add_library(TOOLS STATIC ${tools_src_files})
 
 add_executable(Program main.cpp)
+target_link_libraries(Program TOOLS)
