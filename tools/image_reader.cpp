@@ -141,6 +141,9 @@ std::vector<int> ImageReader::Read(const std::string &path_to_file) {
 
     std::cout << "Чтение пиксельных данных... ";
 
+    std::vector<BYTE> pixel_data_buffer;
+    pixel_data_buffer.reserve(image_width * image_height);
+
     // Считываем непосредственно пиксельные данные
     file.seekg(bitmapfileheader.bfOffBits, std::ios::beg);
     for (int i = 0; i < image_size / sizeof(DWORD); ++i) {
@@ -150,12 +153,16 @@ std::vector<int> ImageReader::Read(const std::string &path_to_file) {
         file.read(pixel_buffer, sizeof(pixel_buffer));
         memcpy(&pixel, pixel_buffer, sizeof(pixel_buffer));
 
-        // std::cout << std::hex << pixel << " ";
+        // Каждый бит - отдельное значение пикселя
+        for (int j = sizeof(DWORD) * 8 - 1; j >= 0; --j) {
+            BYTE value = ((pixel >> j) & 1);
+            pixel_data_buffer.push_back(value);
+        }
     }
 
     std::cout << "+\n";
 
     file.close();
 
-    return {};
+    return result_image_;
 }
