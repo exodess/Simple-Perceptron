@@ -2,8 +2,8 @@
 #include <fstream>
 #include <stdexcept>
 
-std::vector<int> DataReader::Read(const std::string &path_to_file) {
-    std::vector<int> result_data;
+std::vector<float> DataReader::Read(const std::string &path_to_file) {
+    std::vector<float> result_data;
 
     std::ifstream file;
     file.open(path_to_file);
@@ -26,7 +26,7 @@ std::vector<int> DataReader::Read(const std::string &path_to_file) {
     return result_data;
 }
 
-void DataReader::saveData(const std::string &path, const std::vector<int> &data) noexcept {
+void DataReader::saveData(const std::string &path, const std::vector<float> &data) noexcept {
     std::ofstream file;
     file.open(path);
 

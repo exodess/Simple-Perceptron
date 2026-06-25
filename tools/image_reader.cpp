@@ -12,7 +12,7 @@ ImageReader::ImageReader() noexcept {
     result_image_.reserve(DEFAULT_WIDTH_RES * DEFAULT_HEIGHT_RES);
 }
 
-std::vector<int> ImageReader::Read(const std::string &path_to_file) {
+std::vector<float> ImageReader::Read(const std::string &path_to_file) {
     using namespace perc_bmp;
 
     // Необходимые данные для обработки изображения
@@ -251,9 +251,7 @@ void ImageReader::Resize(const std::vector<unsigned char>& raw_data, long old_im
 
     // Копируем результат в "кэш" класса
     for (int i = 0; i < DEFAULT_HEIGHT_RES * DEFAULT_WIDTH_RES; ++i) {
-        int value = (pixel_coef[i] <= 0.5f) ? 0 : 1;
-
-        result_image_[i] = value;
+        result_image_[i] = pixel_coef[i];
     }
 
 }
