@@ -1,87 +1,88 @@
 #include "matrix_perceptron.h"
-
 #include <cmath>
-#include <algorithm>
 
-void Matrix_perceptron::setCountLayer(int value) noexcept {
-    inner_layers_count = value;
-}
-
-void Matrix_perceptron::setMinMax() {
-    min_ = input_[0][0];
-    max_ = input_[0][0];
-
-    for (int i = 0; i < MAX_HEIGHT_RES; ++i) {
-        for (int j = 0; j < MAX_WIDTH_RES; ++j) {
-            if (min_ > input_[i][j]) min_ = input_[i][j];
-            if (max_ < input_[i][j]) max_ = input_[i][j];
+void Matrix_perceptron::sumFunc() {
+    for (int i = 0; i < layers_count; ++i) {
+        Layer& layer = layers_[i];
+        for (int j = 0; j < layer.neurons_.size(); ++j) {
+            Neuron& neuron_ = layer.neurons_[j];
+            neuron_.outputs_ = 0.;
+            for (int k = 0; k < neuron_.weights_.size(); ++k) {
+                neuron_.outputs_ += normalize_input_[k] * neuron_.weights_[k];
+            }
+            neuron_.sigmoidalFunc(neuron_.outputs_);
         }
     }
 }
 
-void Matrix_perceptron::rationing() {
-    double diff = max_ - min_;
-    int normalize_input_i{};
-    for (int i = 0; i < MATRIX_SIZE; ++i) {
-        for (int j = 0; j < MATRIX_SIZE; ++j) {
-            normalize_input_[normalize_input_i++] = (static_cast<double>(input_[i][j]) - min_) / diff;
-        }
-    }
-}
-
-void Matrix_perceptron::sumFunc(int count) {
-    const double* current_input_ = (count == 0) 
-        ? normalize_input_ 
-        : layers_[count - 1].outputs_;
-
-    for (int i = 0; i < layers_[count].output_size_; ++i) {
-        layers_[count].outputs_[i] = 0;
-        for (int j = 0; j < layers_[count].input_size_; ++j) {
-            layers_[count].outputs_[i] += current_input_[j] * layers_[count].weights_[i][j];
-        }
-        sigmoidalFunc(layers_[count].outputs_[i]);
-    }
-}
-
-void Matrix_perceptron::sigmoidalFunc(double& x) {
+void Neuron::sigmoidalFunc(double& x) {
     x = 1. / (1. + exp(-x));
 }
 
-double Matrix_perceptron::errorFunc(int count) {
-    double square_diff_{}, L_{};
+void Matrix_perceptron::backPropagation() {
 
-    for (int i = 0; i < layers_[count].output_size_; ++i) {
-        square_diff_ += pow(layers_[count].outputs_[i] - y_, 2);
+    Layer& layer = layers_[layers_count - 1];
+
+    for (int i = 0; i < OUTPUT_SIZE; ++i) {
+        for (int j = 0; j < layer.neurons_.size(); j++) {
+            Neuron& neuron_ = layer.neurons_[j];
+            double o = neuron_.outputs_;
+            neuron_.deltas_ = (o - y_) * o * (1. - o);
+        }
     }
 
-    L_ = square_diff_ / layers_[count].output_size_;
+    for (int i = layers_count - 1; i > -1; i--) {
+        Layer& layer_current = layers_[i];
+        Layer& layer_prev = layers_[i - 1];
 
-    return L_;
-}
+        for (int j = 0; j < layer_current.output_neurons_count_; ++j) {
+            double error{};
 
-void Matrix_perceptron::backPropagation(int count) {
+            for (int k = 0; k < layer_prev.output_neurons_count_; ++k) {
+                for (int g = 0; g < layer.neurons_.size(); g++) {
+                    Neuron& neuron_ = layer.neurons_[g];
+                    for (int w = 0; w < neuron_.weights_.size(); ++w) {
+                        error += neuron_.deltas_ * neuron_.weights_[w];
+                    }
+                    double o = neuron_.outputs_;
+                    neuron_.deltas_ = error * o * (1. - o);
+                }
+            }
+        }
+    }
 
-    const double* current_input_ = (count == 0) 
-        ? normalize_input_ 
-        : layers_[count - 1].outputs_;
+    for (int l = 0; l < layers_count; ++l) {
+        Layer& layer = layers_[l];
 
-    double L_ = errorFunc(count);
-
-    for (int i = 0; i < layers_[count].output_size_; ++i) {
-        for (int j = 0; j < layers_[count].input_size_; ++j) {
-            double diff_weight_ = 2 * (layers_[count].outputs_[i] - y_) * current_input_[j];
-            layers_[count].weights_[i][j] -= learning_rate_ * diff_weight_;
+        for (int i = 0; i < layer.output_neurons_count_; ++i) {
+            for (int j = 0; j < layer.input_neurons_count_; ++j) {
+                for (int k = 0; k < layer.neurons_.size(); ++k) {
+                    Neuron& neuron_ = layer.neurons_[k];
+                    for (int w = 0; w < neuron_.weights_.size(); ++w) {
+                        neuron_.weights_[w] -= learning_rate_ * neuron_.deltas_ * normalize_input_[j];
+                    }
+                }
+            }
         }
     }
 }
 
+int Matrix_perceptron::predict() {
+    Layer& last_layer_ = layers_[layers_count - 1];
+    int best_index_{};
+    double max_output_{last_layer_.neurons_[0].outputs_};
+
+    for (int i = 0; i < last_layer_.neurons_.size(); ++i) {
+        Neuron& neuron_ = last_layer_.neurons_[i];
+        if (neuron_.outputs_ > max_output_) {
+            best_index_ = i;
+            max_output_ = neuron_.outputs_;
+        }
+    }
+    return best_index_;
+}
+
 void Matrix_perceptron::training() noexcept {
-    setMinMax();
-    rationing();
-    for (int i = 0; i < layers_count; ++i) {
-        sumFunc(i);
-    }
-    for (int i = layers_count - 1; i > -1; --i) {
-        backPropagation(i);
-    }
+    sumFunc();
+    backPropagation();
 }

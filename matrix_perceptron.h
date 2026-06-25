@@ -1,80 +1,60 @@
 #ifndef PERCEPTRON_H
 #define PERCEPTRON_H
 
-#define MAX_WIDTH_RES 512
-#define MAX_HEIGHT_RES 512
-#define INPUT_SIZE  784
-#define OUTPUT_SIZE 26
-#define MIN_HIDDEN  2
-#define MAX_HIDDEN  5
-#define MATRIX_SIZE 28
-#define MAX_NEURONS 64
-
-#include <vector>
-
-using std::vector;
+#include "perceptron.h"
 
 
 // Слой представляет из себя N паралелльных несвязанных между собой нейронов
-class Layer {
+
+class Neuron {
 public:
-    double weights_[MAX_NEURONS][INPUT_SIZE]; // веса входящих связей
-    double grad_output_[INPUT_SIZE]; // градиенты весов
-    double outputs_[INPUT_SIZE];   // выходы после sigmoid
+    explicit Neuron(vector<double>& weights_) noexcept;
 
-    int input_size_;
-    int output_size_;
+    // Функция активации
+    void sigmoidalFunc(double& x);
 
-    Layer() noexcept;
-    Layer(double weights_[MAX_WIDTH_RES][MAX_HEIGHT_RES], 
-        double normalize_input_[MAX_WIDTH_RES][MAX_HEIGHT_RES]) noexcept;
+    char letter_; // буква, с которой ассоциируется нейрон
+
+    vector<double> weights_; // веса входящих связей
+    double deltas_; // градиенты весов
+    double outputs_;   // выходы после sigmoid
 
 };
 
-class Matrix_perceptron {
+class Layer {
+public:
+    std::vector<Neuron> neurons_;
+
+    int input_neurons_count_;
+    int output_neurons_count_;
+
+    Layer() noexcept;
+    Layer(int input_neurons_count_, int output_neurons_count_) noexcept;
+
+};
+
+class Matrix_perceptron : public Perceptron {
     double y_;  // ожидаемый ответ (0 или 1 — эта буква или нет)
 
     vector<Layer> layers_;
-    int input_[MAX_WIDTH_RES][MAX_HEIGHT_RES];
-    double normalize_input_[INPUT_SIZE];
+    vector<double> normalize_input_;
 
 public:
-    char letter_; // буква, с которой ассоциируется нейрон
     int layers_count;
-
-    double min_; 
-    double max_;
     double learning_rate_{0.1};
 
-    explicit Matrix_perceptron(char letter, vector<int> layer_sizes) noexcept; // Создание нейрона с привязанной к нему буквой
-    explicit Matrix_perceptron(int number) noexcept; // Создание нейрона с порядковым номером буквы в алфавите
+    explicit Matrix_perceptron(char letter, vector<int>& layer_sizes) noexcept; // Создание нейрона с привязанной к нему буквой
+    explicit Matrix_perceptron(int number, vector<int>& layer_sizes) noexcept; // Создание нейрона с порядковым номером буквы в алфавите
 
-    // Задание нового количества скрытых слоев
-    void setCountLayer(int value) noexcept;
-
-    // Устанавливаем рандомные веса
-    void createWeights();
-
-    // Минимум и максимум входных значений
-    void setMinMax();
-
-    // Функция нормировки
-    void rationing();
-
-    // Функция активации
-    void sumFunc(int count);
-    
-    // Функция активации
-    void sigmoidalFunc(double& x);
-    
-    // Расчет функции ошибки
-    double errorFunc(int count);
+    void sumFunc();
 
     // Обратное распространение ошибки
-    void backPropagation(int count);
+    void backPropagation();
 
     // Возвращает индекс буквы
     int predict();
 
     void training() noexcept;
 };
+
+#endif
