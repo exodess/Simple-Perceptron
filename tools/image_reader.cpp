@@ -1,5 +1,6 @@
 #include "tools/tools.h"
 #include "tools/bitmap.h"
+#include "data/data.h"
 #include <fstream>
 #include <stdexcept>
 #include <cstring>
@@ -134,7 +135,7 @@ std::vector<int> ImageReader::Read(const std::string &path_to_file) {
     if (bits_per_pixel > 1) {
         throw std::runtime_error("Unsupported bit depth");
     }
-    if (image_height > 512 || image_width > 512) {
+    if (image_height > MAX_HEIGHT_RES || image_width > MAX_WIDTH_RES) {
         throw std::runtime_error("Unsupported image resolution");
     }
 
