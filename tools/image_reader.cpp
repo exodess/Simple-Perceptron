@@ -11,11 +11,9 @@ std::vector<int> ImageReader::Read(const std::string &path_to_file) {
     using namespace perc_bmp;
 
     // Необходимые данные для обработки изображения
-    DWORD image_width, image_height;
+    DWORD image_width, image_height; // Разрешение изображения
+    DWORD image_size; // Размер пиксельных данных в байтах
     WORD bits_per_pixel;
-    DWORD compression;
-    DWORD image_size = 0;
-    DWORD red_bitmask, green_bitmask, blue_bitmask, alpha_bitmask;
 
     std::ifstream file;
     file.open(path_to_file, std::ios::binary);
@@ -64,7 +62,8 @@ std::vector<int> ImageReader::Read(const std::string &path_to_file) {
 
         image_width = bitmapcoreheader.bcWidth;
         image_height = bitmapcoreheader.bcHeight;
-        bits_per_pixel = bitmapcoreheader.bcBitCount;
+        image_size = bitmapfileheader.bfSize - bitmapfileheader.bfOffBits;
+        bits_per_pixel = (image_size * 8) / (image_width * image_height);
 
     } else if (bitmapinfo_version == sizeof(BITMAPINFOHEADER)) {
         std::cout << "3\n";
@@ -82,7 +81,6 @@ std::vector<int> ImageReader::Read(const std::string &path_to_file) {
         image_width = bitmapinfoheader.biWidth;
         image_height = bitmapinfoheader.biHeight;
         bits_per_pixel = bitmapinfoheader.biBitCount;
-        compression = bitmapinfoheader.biCompression;
         image_size = bitmapinfoheader.biSizeImage;
 
         std::cout << "+" << std::endl;
@@ -103,11 +101,7 @@ std::vector<int> ImageReader::Read(const std::string &path_to_file) {
         image_width = bitmapv4header.bV4Width;
         image_height = bitmapv4header.bV4Height;
         bits_per_pixel = bitmapv4header.bV4BitCount;
-        compression = bitmapv4header.bV4Compression;
         image_size = bitmapv4header.bV4SizeImage;
-        red_bitmask = bitmapv4header.bV4RedMask;
-        green_bitmask = bitmapv4header.bV4GreenMask;
-        blue_bitmask = bitmapv4header.bV4BlueMask;
 
     } else if (bitmapinfo_version == sizeof(BITMAPV5HEADER)) {
         std::cout << "5\n";
@@ -123,11 +117,7 @@ std::vector<int> ImageReader::Read(const std::string &path_to_file) {
         image_width = bitmapv5header.bV5Width;
         image_height = bitmapv5header.bV5Height;
         bits_per_pixel = bitmapv5header.bV5BitCount;
-        compression = bitmapv5header.bV5Compression;
         image_size = bitmapv5header.bV5SizeImage;
-        red_bitmask = bitmapv5header.bV5RedMask;
-        green_bitmask = bitmapv5header.bV5GreenMask;
-        blue_bitmask = bitmapv5header.bV5BlueMask;
 
         std::cout << "+" << std::endl;
 
@@ -138,24 +128,31 @@ std::vector<int> ImageReader::Read(const std::string &path_to_file) {
 #ifdef DEBUG
     std::cout << "\tШирина изображения: " << std::dec << image_width << std::endl;
     std::cout << "\tВысота изображения: " << std::dec << image_height << std::endl;
-    std::cout << "\tРазрядность: " << bits_per_pixel << " бит" << std::endl;
-    std::cout << "\tПоле compression: " << std::hex << compression << std::endl;
 #endif
+
+    // Проверка перед считыванием данных
+    if (bits_per_pixel > 1) {
+        throw std::runtime_error("Unsupported bit depth");
+    }
+    if (image_height > 512 || image_width > 512) {
+        throw std::runtime_error("Unsupported image resolution");
+    }
+
+    std::cout << "Чтение пиксельных данных... ";
 
     // Считываем непосредственно пиксельные данные
     file.seekg(bitmapfileheader.bfOffBits, std::ios::beg);
-    for (int i = 0; i < 10; ++i) {
-        DWORD pixel;
-        char pixel_buffer[bits_per_pixel / 8];
+    for (int i = 0; i < image_size / sizeof(DWORD); ++i) {
+        DWORD pixel = 0;
+        char pixel_buffer[sizeof(pixel)];
 
         file.read(pixel_buffer, sizeof(pixel_buffer));
         memcpy(&pixel, pixel_buffer, sizeof(pixel_buffer));
 
-        std::cout << "Считан " << (i + 1) << "-ый пиксель\n";
-        std::cout << "\tКрасный канал: " << std::hex << ((pixel & red_bitmask) >> 16) << std::endl;
-        std::cout << "\tЗеленый канал: " << std::hex << ((pixel & green_bitmask) >> 8) << std::endl;
-        std::cout << "\tСиний канал: " << std::hex << (pixel & blue_bitmask) << std::endl;
+        // std::cout << std::hex << pixel << " ";
     }
+
+    std::cout << "+\n";
 
     file.close();
 
