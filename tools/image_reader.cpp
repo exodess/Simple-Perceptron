@@ -8,6 +8,10 @@
 
 #define DEBUG
 
+ImageReader::ImageReader() noexcept {
+    result_image_.reserve(DEFAULT_WIDTH_RES * DEFAULT_HEIGHT_RES);
+}
+
 std::vector<int> ImageReader::Read(const std::string &path_to_file) {
     using namespace perc_bmp;
 
@@ -135,9 +139,9 @@ std::vector<int> ImageReader::Read(const std::string &path_to_file) {
     if (bits_per_pixel > 1) {
         throw std::runtime_error("Unsupported bit depth");
     }
-    if (image_height > MAX_HEIGHT_RES || image_width > MAX_WIDTH_RES) {
-        throw std::runtime_error("Unsupported image resolution");
-    }
+    // if (image_height > MAX_HEIGHT_RES || image_width > MAX_WIDTH_RES) {
+    //     throw std::runtime_error("Unsupported image resolution");
+    // }
 
     std::cout << "Чтение пиксельных данных... ";
 
@@ -162,7 +166,94 @@ std::vector<int> ImageReader::Read(const std::string &path_to_file) {
 
     std::cout << "+\n";
 
+    Resize(pixel_data_buffer, image_width, image_height);
+
     file.close();
 
     return result_image_;
+}
+
+void ImageReader::getImage(const std::string& output_file) noexcept {
+    // Пока что изображение выводится на экран
+    std::cout << "Создается сжатое изображение 28x28... ";
+    std::cout << "+\n";
+
+    for (auto i = 0; i < DEFAULT_HEIGHT_RES; ++i) {
+        for (auto j = 0; j < DEFAULT_WIDTH_RES; ++j) {
+            char symbol = (result_image_[i * DEFAULT_HEIGHT_RES + j] == 0) ? '#' : ' ';
+
+            std::cout << "[" << symbol << "]";
+        }
+        std::cout << std::endl;
+    }
+}
+
+void ImageReader::Resize(const std::vector<unsigned char>& raw_data, long old_image_width, long old_image_height) noexcept {
+    // В результате должно получится массив размером 28x28 пикселей
+
+    perc_bmp::DWORD width = old_image_width, height = old_image_height;
+    std::vector<float> pixel_coef;
+    pixel_coef.reserve(old_image_width * old_image_height);
+
+    for (int i = 0; i < old_image_height * old_image_width; ++i) {
+        pixel_coef[i] = static_cast<float>(raw_data[i]);
+    }
+
+    while (height != DEFAULT_HEIGHT_RES || width != DEFAULT_WIDTH_RES) {
+        if (height != DEFAULT_HEIGHT_RES) {
+            perc_bmp::DWORD new_height = height;
+
+            for (auto i = 0; i < height - 1; ++i) {
+                for (auto j = 0; j < width; ++j) {
+                    float res_pixel = (pixel_coef[i * width + j] + pixel_coef[(i + 1) * width + j]) / 2.0f;
+
+                    pixel_coef[i * width + j] = res_pixel;
+                }
+
+                if (--new_height == DEFAULT_HEIGHT_RES) {
+                    break;
+                }
+            }
+
+            // Удаляем лишние горизонтальные линии в матрице
+            for (auto i = 0; i < (height - new_height); --height) {
+                perc_bmp::DWORD begin_index = (i + 1) * width;
+                perc_bmp::DWORD end_index = (i + 2) * width;
+
+                pixel_coef.erase(pixel_coef.begin() + begin_index, pixel_coef.begin() + end_index);
+            }
+        }
+
+        if (width != DEFAULT_WIDTH_RES) {
+            perc_bmp::DWORD new_width = width;
+
+            for (auto j = 0; j < width - 1; ++j) {
+                for (auto i = 0; i < height; ++i) {
+                    float res_pixel = (pixel_coef[i * width + j] + pixel_coef[i * width + j + 1]) / 2.0f;
+
+                    pixel_coef[i * width + j] = res_pixel;
+                }
+
+                if (--new_width == DEFAULT_WIDTH_RES) {
+                    break;
+                }
+            }
+
+            // Удаляем лишние вертикальные линии в матрице
+            for (auto j = 0; j < (width - new_width); --width) {
+                for (auto i = 0; i < height; ++i) {
+                    // учитываем смещение после того, как удалится очередной элемент
+                    pixel_coef.erase(pixel_coef.begin() + (i * width + j + 1 - i));
+                }
+            }
+        }
+    }
+
+    // Копируем результат в "кэш" класса
+    for (int i = 0; i < DEFAULT_HEIGHT_RES * DEFAULT_WIDTH_RES; ++i) {
+        int value = (pixel_coef[i] <= 0.5f) ? 0 : 1;
+
+        result_image_[i] = value;
+    }
+
 }
