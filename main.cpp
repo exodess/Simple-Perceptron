@@ -2,14 +2,10 @@
 #include <iostream>
 
 int main() {
-    ImageReader bmp_reader;
     EmnistDataReader csv_reader;
     std::cout << "Hello, World!" << std::endl;
 
     try {
-        bmp_reader.Read("../materials/convertico-abstract-design-1-bit-black-and-white-bmp.bmp");
-        bmp_reader.getImage("out.bmp");
-
         auto res = csv_reader.Read("../materials/emnist/emnist-letters-test.csv");
         std::cout << "EmnistDataReader: Считано " << res.size() << " примеров\n";
         std::cout << "Первое изображение: " << static_cast<char>(res[0].letter() + 'a' - 1) << "\n";
