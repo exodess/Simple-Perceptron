@@ -6,9 +6,7 @@
 #define OUTPUT_SIZE 26
 #define MIN_HIDDEN  2
 #define MAX_HIDDEN  5
-#define MATRIX_SIZE 28
-#define MAX_NEURONS 64
-
+#define LETTER_SHIFT 65
 using std::vector;
 
 enum PerceptronType {
@@ -38,5 +36,7 @@ public:
 
 private:
     PerceptronType type_;
+    char letter_;
+    double y_[OUTPUT_SIZE];
 
 };
