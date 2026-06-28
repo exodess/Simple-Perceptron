@@ -5,10 +5,10 @@
 
 class Neuron {
 public:
-    explicit Neuron(vector<double>& weights_) noexcept;
+    explicit Neuron() noexcept;
 
     // Функция активации
-    void sigmoidalFunc(double& x);
+    void sigmoidalFunc(double& x) noexcept;
 
     vector<double> weights_; // веса входящих связей
     double deltas_; // градиенты весов
@@ -32,7 +32,7 @@ public:
 
 class Matrix_perceptron : public Perceptron {
     double y_[OUTPUT_SIZE]{};
-    char letter_;
+    int number_;
 
 
     int hidden_layers_count_;
@@ -43,16 +43,15 @@ public:
     int layers_count;
     double learning_rate_{0.1};
 
-    explicit Matrix_perceptron(char letter, int hidden_layer_sizes); // Создание нейрона с привязанной к нему буквой
-    explicit Matrix_perceptron(int number, int hidden_layer_sizes) noexcept; // Создание нейрона с порядковым номером буквы в алфавите
+    explicit Matrix_perceptron(int number, int hidden_layer_sizes) noexcept;
 
-    void sumFunc();
-
+    void sumFunc() noexcept;
+    
     // Обратное распространение ошибки
-    void backPropagation();
+    void backPropagation() noexcept;
 
     // Возвращает индекс буквы
-    int predict();
+    int predict() noexcept;
 
     void training() noexcept;
 };

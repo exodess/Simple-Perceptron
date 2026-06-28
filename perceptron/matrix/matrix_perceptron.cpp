@@ -2,29 +2,7 @@
 #include <random>
 #include <cmath>
 
-Matrix_perceptron::Matrix_perceptron(char letter, int hidden_layer_sizes): letter_{number + LETTER_SHIFT}, hidden_layers_count_{hidden_layer_sizes}, layers_count{hidden_layer_sizes + 2} noexcept {
-    layers_.resize(layers_count);
-    int temp_neuron_count_{};
-
-    if (hidden_layer_sizes < MAX_HIDDEN) {
-        temp_neuron_count_ = 64;
-    } else {
-        temp_neuron_count_ = 32;
-    }
-
-    layers_[hidden_layer_sizes + 1] = Layer{temp_neuron_count_, OUTPUT_SIZE};
-
-    for (int i = hidden_layer_sizes; i > 0; --i) {
-        layers_[i] = Layer{temp_neuron_count_ * 2, temp_neuron_count_};
-        temp_neuron_count_*= 2;
-    }
-
-    layers_[0] = Layer{INPUT_SIZE, temp_neuron_count_};
-
-    y_[letter_ - LETTER_SHIFT] = 1;
-}
-
-Matrix_perceptron::Matrix_perceptron(int number, int hidden_layer_sizes): letter_{letter}, hidden_layers_count_{hidden_layer_sizes}, layers_count{hidden_layer_sizes + 2} noexcept {
+Matrix_perceptron::Matrix_perceptron(int number, int hidden_layer_sizes) noexcept: number_{number}, hidden_layers_count_{hidden_layer_sizes}, layers_count{hidden_layer_sizes + 2} {
     layers_.resize(layers_count);
     int temp_neuron_count_{};
 
@@ -75,7 +53,7 @@ void Matrix_perceptron::sumFunc() {
     }
 }
 
-void Neuron::sigmoidalFunc(double& x) {
+void Neuron::sigmoidalFunc(double& x) noexcept {
     x = 1. / (1. + exp(-x));
 }
 
@@ -91,7 +69,7 @@ void Layer::setRandomWeights() noexcept {
     }
 }
 
-void Matrix_perceptron::backPropagation() {
+void Matrix_perceptron::backPropagation() noexcept {
 
     Layer& layer = layers_.back();
 
@@ -139,7 +117,7 @@ void Matrix_perceptron::backPropagation() {
     }
 }
 
-int Matrix_perceptron::predict() {
+int Matrix_perceptron::predict() noexcept {
     Layer& last_layer_ = layers_[layers_count - 1];
     int best_index_{};
     double max_output_{last_layer_.neurons_[0].outputs_};
