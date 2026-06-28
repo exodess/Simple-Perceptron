@@ -2,45 +2,47 @@
 #include <fstream>
 #include <stdexcept>
 
-std::vector<float> DataReader::Read(const std::string &path_to_file) {
-    std::vector<float> result_data;
+namespace perc {
+    std::vector<float> DataReader::Read(const std::string &path_to_file) {
+        std::vector<float> result_data;
 
-    std::ifstream file;
-    file.open(path_to_file);
+        std::ifstream file;
+        file.open(path_to_file);
 
-    if (!file.is_open()) {
+        if (!file.is_open()) {
 #ifdef DEBUG
-        std::cout << "Файл \"" << path_to_file << "\" не найден!\n";
+            std::cout << "Файл \"" << path_to_file << "\" не найден!\n";
 #endif
-        throw std::runtime_error("The file does not exist");
+            throw std::runtime_error("The file does not exist");
+        }
+
+        // Пока что примерный код, отвечающий за считывание данных
+        while (!file.eof()) {
+            int value;
+            file >> value;
+            result_data.push_back(value);
+        }
+
+        file.close();
+        return result_data;
     }
 
-    // Пока что примерный код, отвечающий за считывание данных
-    while (!file.eof()) {
-        int value;
-        file >> value;
-        result_data.push_back(value);
-    }
+    void DataReader::saveData(const std::string &path, const std::vector<float> &data) noexcept {
+        std::ofstream file;
+        file.open(path);
 
-    file.close();
-    return result_data;
-}
-
-void DataReader::saveData(const std::string &path, const std::vector<float> &data) noexcept {
-    std::ofstream file;
-    file.open(path);
-
-    if (!file.is_open()) {
+        if (!file.is_open()) {
 #ifdef DEBUG
-        std::cout << "Не удалось открыть файл \"" << path << "\"\n";
+            std::cout << "Не удалось открыть файл \"" << path << "\"\n";
 #endif
-        throw std::runtime_error("Couldn't open the file");
-    }
+            throw std::runtime_error("Couldn't open the file");
+        }
 
-    // Тоже примерный код для сохранения массива данных
-    for (auto v : data) {
-        file << v;
-    }
+        // Тоже примерный код для сохранения массива данных
+        for (auto v : data) {
+            file << v;
+        }
 
-    file.close();
+        file.close();
+    }
 }
