@@ -21,4 +21,10 @@
 #define MAX_HIDDEN 5 ///< Максимальное количество скрытых слоев перцептрона
 #define MAX_NEURONS 64
 
+// Настройки GUI
+#define DEFAULT_WINDOW_WIDTH 900
+#define DEFAULT_WINDOW_HEIGHT 600
+#define MINIMUM_WINDOW_WIDTH 600
+#define MINIMUM_WINDOW_HEIGHT 600
+
 #endif
