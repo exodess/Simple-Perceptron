@@ -60,13 +60,13 @@ public:
  * @brief Хранит данные для обучения/тестирования перцептрона
  */
 struct EmnistData {
-    EmnistData(const char letter, const std::vector<float>& data) noexcept : letter_(letter), data_(data) {}
+    EmnistData(const int index, const std::vector<float>& data) noexcept : index_(index), data_(data) {}
 
-    char& letter() noexcept { return letter_; }
+    int& index() noexcept { return index_; }
     const std::vector<float>& data() noexcept { return data_; }
 
 private:
-    char letter_; ///< Символ, который представлен в виде данной картинки
+    int index_; ///< Индекс символа, который представлен в виде этой картинки
     std::vector<float> data_; ///< Нормализованные данные картинки в виде матрицы пикселей 26x26
 };
 

@@ -1,9 +1,8 @@
 #include "tools/tools.h"
+#include "data/data.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
-
-#include "data/data.h"
 
 std::vector<EmnistData> EmnistDataReader::Read(const std::string &path_to_file) {
     std::vector<EmnistData> result_data;
@@ -28,8 +27,8 @@ std::vector<EmnistData> EmnistDataReader::Read(const std::string &path_to_file) 
             raw_data.push_back(static_cast<char>(std::stoi(num)));
         }
 
-        // Первое число - символ, который нарисован на этой картинке
-        char symbol = raw_data[0];
+        // Первое число - номер символа, который нарисован на этой картинке
+        char number = raw_data[0];
         raw_data.erase(raw_data.begin());
 
         if (raw_data.size() != DEFAULT_WIDTH_RES * DEFAULT_HEIGHT_RES) {
@@ -40,7 +39,7 @@ std::vector<EmnistData> EmnistDataReader::Read(const std::string &path_to_file) 
         // Преобразуем данные в корректный вид
         auto normalize_data = Normalize(raw_data);
 
-        result_data.push_back(EmnistData(symbol, normalize_data));
+        result_data.push_back(EmnistData(number - 1, normalize_data));
     }
 
     file.close();
