@@ -1,35 +1,18 @@
-#include "tools/tools.h"
-#include <iostream>
+#include "gui/mainwindow.h"
+#include <QApplication>
+#include <QSurfaceFormat>
 
-int main() {
-    EmnistDataReader csv_reader;
-    std::cout << "Hello, World!" << std::endl;
+int main(int argc, char* argv[]) {
+    QApplication app(argc, argv);
 
-    try {
-        auto res = csv_reader.Read("../materials/emnist/emnist-letters-test.csv");
-        std::cout << "EmnistDataReader: Считано " << res.size() << " примеров\n";
-        std::cout << "Первое изображение: " << static_cast<char>(res[0].letter() + 'a' - 1) << "\n";
+    QSurfaceFormat format;
+    format.setVersion(3, 3);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    format.setDepthBufferSize(24);
+    QSurfaceFormat::setDefaultFormat(format);
 
-        auto result_image = res[0].data();
+    gui::MainWindow window;
+    window.show();
 
-        for (auto i = 0; i < 28; ++i) {
-            for (auto j = 0; j < 28; ++j) {
-                float pixel = result_image[i * 28 + j];
-                char symbol = ' ';
-
-                if (pixel < 1.0f && pixel >= 0.7f) symbol = '\'';
-                else if (pixel < 0.7f && pixel >= 0.5f) symbol = '+';
-                else if (pixel < 0.5f && pixel >= 0.3f) symbol = '*';
-                else if (pixel < 0.3f && pixel >= 0.0f) symbol = '#';
-
-                std::cout << symbol << symbol;
-            }
-            std::cout << std::endl;
-        }
-
-    } catch (const std::exception& e) {
-        std::cout << "Не удалось обработать изображение!\n";
-        std::cout << "Ошибка: " << e.what() << std::endl;
-    }
-    return 0;
+    return app.exec();
 }
