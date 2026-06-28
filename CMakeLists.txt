@@ -15,10 +15,11 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets)
 # включение заголовочных файлов
 include_directories(include)
 file(GLOB tools_src_files "tools/*.cpp")
+file(GLOB gui_files "gui/*.cpp" "include/gui/*.h")
 
 add_library(TOOLS STATIC ${tools_src_files})
 
-add_executable(Program main.cpp)
+add_executable(Program main.cpp ${gui_files})
 target_link_libraries(
         Program
         TOOLS
