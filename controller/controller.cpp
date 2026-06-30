@@ -1,6 +1,7 @@
 #include "controller/controller.h"
 #include <map>
 #include <chrono>
+#include <iostream>
 
 namespace perc {
 
@@ -61,6 +62,46 @@ namespace perc {
         return result;
     }
 
+    char Controller::verify(const std::vector<float> &data) noexcept {
+        int res_index = perceptron_->predict(data);
+
+        return (res_index != -1) ? static_cast<char>(res_index + 'a') : '?';
+    }
+
+    SuccessRate Controller::crossValidation(const std::string &path, int k) noexcept {
+        SuccessRate result;
+        auto data = emnist_data_reader_->Read(path);
+        perceptron_->crossValidation(data, k);
+
+        return result;
+    }
+
+    void Controller::training(const std::string &path, int count_epoch) noexcept {
+        auto data = emnist_data_reader_->Read(path);
+
+        perceptron_->training(count_epoch, data);
+    }
+
+    void Controller::switchImplementation(PerceptronType type) noexcept {
+        perceptron_->type() = type;
+    }
+
+    void Controller::switchHiddenLayers(int count) noexcept {
+        // Проверка количества скрытых слоев идет в GUI
+        perceptron_->hiddenLayer() = count;
+    }
+
+    void Controller::saveWeights(const std::string &path) noexcept {
+        auto& data = perceptron_->weghts();
+
+        data_reader_->saveData(path, data);
+    }
+
+    void Controller::loadWeights(const std::string &path) noexcept {
+        auto data = data_reader_->Read(path);
+
+        perceptron_->weights() = data;
+    }
 
 }
 
