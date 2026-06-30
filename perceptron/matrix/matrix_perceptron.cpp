@@ -50,10 +50,6 @@ Matrix_perceptron::Matrix_perceptron(int number, int hidden_layer_sizes, vector<
     loadWeights(weights);
 }
 
-void Matrix_perceptron::setHiddenLayer(int value) noexcept {
-    hidden_layers_count_ = value;
-}
-
 void Matrix_perceptron::setDataInput(const vector<float>& normalize_input) noexcept {
     normalize_input_ = normalize_input;
 }

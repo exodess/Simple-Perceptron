@@ -48,12 +48,6 @@ public:
     static unique_ptr<Perceptron> create(PerceptronType type, int number, int hidden_layers) noexcept;
 
     /**
-     * @brief Задает количество скрытых слоев (от 2 до 5)
-     * @param value Количество скрытых слоев, 
-     */
-    virtual void setHiddenLayer(int value) noexcept = 0;
-
-    /**
      * @brief Возвращает тип реализации
      * @return enum PerceptronType (тип реализации)
      */
@@ -175,12 +169,6 @@ public:
     explicit Matrix_perceptron(int number, int hidden_layer_sizes, vector<float> weights) noexcept;
 
     ~Matrix_perceptron() = default;
-
-    /**
-     * @brief Метод, который устанавливает количество скрытых слоев
-     * @param value количество скрытых эпох
-     */
-    void setHiddenLayer(int value) noexcept override;
 
     /**
      * @brief Метод, который устанавливает новые данные для перцептрона.
