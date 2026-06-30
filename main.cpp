@@ -5,6 +5,9 @@
 
 int main() {
     EmnistDataReader csv_reader;
+    DataReader dataReader;
+
+
     std::cout << "Hello, World!" << std::endl;
 
     try {
@@ -30,7 +33,10 @@ int main() {
         }
 
         unique_ptr<Perceptron> perceptron = Perceptron::create(MATRIX_VIEW, 0, 2);
-        perceptron->training(15, res);
+        dataReader.Read("data.txt");
+        perceptron->loadWeights(dataReader.Read("data.txt"));
+        perceptron->training(1, res);
+        // dataReader.saveData("data.txt", perceptron->saveWeights());
 
     } catch (const std::exception& e) {
         std::cout << "Не удалось обработать изображение!\n";

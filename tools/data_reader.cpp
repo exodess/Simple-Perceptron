@@ -16,9 +16,8 @@ std::vector<float> DataReader::Read(const std::string &path_to_file) {
     }
 
     // Пока что примерный код, отвечающий за считывание данных
-    while (!file.eof()) {
-        int value;
-        file >> value;
+    float value;
+    while (file >> value) {
         result_data.push_back(value);
     }
 
@@ -39,7 +38,7 @@ void DataReader::saveData(const std::string &path, const std::vector<float> &dat
 
     // Тоже примерный код для сохранения массива данных
     for (auto v : data) {
-        file << v;
+        file << v << " ";
     }
 
     file.close();

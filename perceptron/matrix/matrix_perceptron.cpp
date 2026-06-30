@@ -1,11 +1,4 @@
 #include "../../include/perceptron/perceptron.h"
-#include <random>
-#include <iostream>
-#include <algorithm>
-#include <chrono>
-#include <thread>
-
-Neuron::Neuron() noexcept: deltas_{}, outputs_{} {}
 
 Matrix_perceptron::Matrix_perceptron(int number, int hidden_layer_sizes) noexcept: 
     number_{number}, hidden_layers_count_{hidden_layer_sizes}, layers_count{hidden_layer_sizes + 2}
@@ -31,6 +24,32 @@ Matrix_perceptron::Matrix_perceptron(int number, int hidden_layer_sizes) noexcep
     y_[number] = 1;
 }
 
+Matrix_perceptron::Matrix_perceptron(int number, int hidden_layer_sizes, vector<float> weights) noexcept: 
+    number_{number}, hidden_layers_count_{hidden_layer_sizes}, layers_count{hidden_layer_sizes + 2}
+{
+    layers_.resize(layers_count);
+    int temp_neuron_count_{};
+
+    if (hidden_layer_sizes < MAX_HIDDEN) {
+        temp_neuron_count_ = 64;
+    } else {
+        temp_neuron_count_ = 32;
+    }
+
+    layers_[layers_count - 1] = Layer{temp_neuron_count_, COUNT_LETTERS};
+
+    for (int i = layers_count - 2; i > 0; --i) {
+        layers_[i] = Layer{temp_neuron_count_ * 2, temp_neuron_count_};
+        temp_neuron_count_ *= 2;
+    }
+
+    layers_[0] = Layer{INPUT_SIZE, temp_neuron_count_};
+
+    y_[number] = 1;
+
+    loadWeights(weights);
+}
+
 void Matrix_perceptron::setHiddenLayer(int value) noexcept {
     hidden_layers_count_ = value;
 }
@@ -39,18 +58,16 @@ void Matrix_perceptron::setDataInput(const vector<float>& normalize_input) noexc
     normalize_input_ = normalize_input;
 }
 
-Layer::Layer() noexcept: input_neurons_count_{0}, output_neurons_count_{0} {}
+PerceptronType& Matrix_perceptron::type() noexcept {
+    return Perceptron_type_;
+}
 
-Layer::Layer(int input_neurons_count_, int output_neurons_count_) noexcept: 
-    input_neurons_count_{input_neurons_count_}, output_neurons_count_{output_neurons_count_} 
-{
-    neurons_.resize(output_neurons_count_);
+int Matrix_perceptron::number() noexcept {
+    return number_;
+}
 
-    for (auto& neuron : neurons_) {
-        neuron.weights_.resize(input_neurons_count_);
-    }
-
-    setRandomWeights();
+int Matrix_perceptron::hidden_layers() noexcept {
+    return hidden_layers_count_;
 }
 
 void Matrix_perceptron::sumFunc() noexcept {
@@ -70,29 +87,14 @@ void Matrix_perceptron::sumFunc() noexcept {
 
             float sum = neuron.bias_;
 
-            for (int k = 0; k < neuron.weights_.size(); ++k)
+            for (int k = 0; k < neuron.weights_.size(); ++k) {
                 sum += input_[k] * neuron.weights_[k];
+                std::cout << neuron.weights_[k] << " ";
+            }
 
             neuron.outputs_ = neuron.sigmoidalFunc(sum);
 
             layer.output_vector_[i] = neuron.outputs_;
-        }
-    }
-}
-
-float Neuron::sigmoidalFunc(float x) noexcept {
-    return  1. / (1. + exp(-x));
-}
-
-void Layer::setRandomWeights() noexcept {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dist(-0.5, 0.5);
-
-    for (auto& neuron : neurons_) {
-        neuron.bias_ = dist(gen);
-        for (auto& weight : neuron.weights_) {
-            weight = dist(gen);
         }
     }
 }
@@ -154,7 +156,7 @@ float Matrix_perceptron::backPropagation(float expected_[OUTPUT_SIZE]) noexcept 
     return total_error_;
 }
 
-int Matrix_perceptron::predict(const vector<float>& image) noexcept  {
+int Matrix_perceptron::verify(const vector<float>& image) noexcept  {
     setDataInput(image);
     sumFunc();
 
@@ -172,7 +174,10 @@ int Matrix_perceptron::predict(const vector<float>& image) noexcept  {
     return best_index_;
 }
 
-void Matrix_perceptron::training(int epoch, std::vector<EmnistData> EmnistData_) noexcept {
+vector<float> Matrix_perceptron::training(std::vector<EmnistData> EmnistData_, int epoch) noexcept {
+
+    float best_accuracy{1};
+    vector<float> best_weights_;
 
     std::random_device rd;
     std::mt19937 g(rd());
@@ -182,10 +187,13 @@ void Matrix_perceptron::training(int epoch, std::vector<EmnistData> EmnistData_)
     training_set = vector<EmnistData>{EmnistData_.begin(), EmnistData_.begin() + 11839};
     test_set = vector<EmnistData>{EmnistData_.begin() + 11840, EmnistData_.end()};
 
+    for (auto& layer : layers_) {
+        layer.setRandomWeights();
+    }
+
     for (int j = 0; j < epoch; ++j) {
 
-        float epoch_loss{};
-        int correct = 0;
+        float epoch_loss{}, correct{}, accuracy{};
 
         std::random_device rd;
         std::mt19937 g(rd());
@@ -207,14 +215,25 @@ void Matrix_perceptron::training(int epoch, std::vector<EmnistData> EmnistData_)
             std::mt19937 t(rd());
             std::shuffle(training_set.begin(), training_set.end(), t);
 
-            if (predict(input.data()) == static_cast<int>(input.letter()) - 1)
+            if (verify(input.data()) == static_cast<int>(input.letter()) - 1)
                 correct++;
+        }
+
+        accuracy = correct * 100. / 2960;
+
+        if (best_accuracy < accuracy) {
+            best_accuracy = accuracy;
+            best_weights_ = saveWeights();
         }
 
         std::cout << "Epoch " << j + 1 
                 << " loss: " << epoch_loss / EmnistData_.size() <<
-                " average accuracy: " << (correct * 100. / 2960 ) << std::endl;
+                " average accuracy: " << accuracy << std::endl;
     }
+
+    loadWeights(best_weights_);
+
+    return best_weights_;
 }
 
 Metrics::Metrics() noexcept: 
@@ -265,7 +284,7 @@ void Matrix_perceptron::experiment(float percentage) noexcept {
 
 }
 
-void Matrix_perceptron::readWeights(const vector<float>& data) {
+void Matrix_perceptron::loadWeights(const vector<float>& data) noexcept {
     vector<float> weights = data;
     int i{};
 
@@ -278,7 +297,7 @@ void Matrix_perceptron::readWeights(const vector<float>& data) {
     }
 }
 
-vector<float> Matrix_perceptron::saveWeights() {
+vector<float> Matrix_perceptron::saveWeights() noexcept {
     vector<float> weights{};
 
     for (auto& layer : layers_) {
@@ -288,4 +307,6 @@ vector<float> Matrix_perceptron::saveWeights() {
             }
         }
     }
+
+    return weights;
 }

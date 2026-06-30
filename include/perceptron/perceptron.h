@@ -11,6 +11,10 @@
 
 #include <vector>
 #include <memory>
+#include <random>
+#include <algorithm>
+#include <iostream>
+
 #include "../data/data.h"
 #include "../tools/tools.h"
 
@@ -50,10 +54,28 @@ public:
     virtual void setHiddenLayer(int value) noexcept = 0;
 
     /**
+     * @brief Возвращает тип реализации
+     * @return enum PerceptronType (тип реализации)
+     */
+    virtual PerceptronType& type() noexcept = 0;
+
+    /**
+     * @brief Возвращает индекс буквы
+     * @return индекс буквы
+     */
+    virtual int number() noexcept = 0;
+
+    /**
+     * @brief Возвращает количество скрытых слоев
+     * @return количество скрытых слоев
+     */
+    virtual int hidden_layers() noexcept = 0;
+
+    /**
      * @brief Метод, возвращающий индекс нейрона с максимальный выходом
      * @return Индекс предсказанного значения
      */
-    virtual int predict(const vector<float>& image) noexcept = 0;
+    virtual int verify(const vector<float>& image) noexcept = 0;
 
     /**
      * @brief Метод, обучающий перцептрон. Собирает в себе
@@ -64,9 +86,27 @@ public:
      * @param vector<vector<float>> dataset_normalize_input_ Вектор векторов входных значений,
      * где каждый вектор содержит данные о конкретной картинке
      */
-    virtual void training(int epochs, std::vector<EmnistData> EmnistData_) noexcept = 0;
+    virtual vector<float> training(std::vector<EmnistData> EmnistData_, int epoch) noexcept = 0;
 
     virtual void experiment(float percentage) noexcept = 0;
+
+    /**
+     * @brief Метод, загружающий веса в перцептрон. Веса можно загрузить либо 
+     * при создании перцептрона (перегрузка конструктора), либо создать объект перцептрона
+     * и вызвать функцию на загрузку 
+     * (пример: perceptron = create(...); perceptron->loadWeights(dataReader.Read("data.txt"));)
+     * @param вектор весов для всех нейронов 
+     */
+    virtual void loadWeights(const vector<float>& data) noexcept = 0;
+
+    /**
+     * @brief Метод, возращающий веса перцептрона. Может применяться отдельно либо вектор 
+     * будет формироваться самостоятельно на возврат из training.
+     * Пример самостоятельного возврата: perceptron = create(...); perceptron->training(...) (возвращает вектор); 
+     * dataReader.saveData("data.txt", perceptron->saveWeights()) (самостоятельный вызов);
+     * @return вектор весов для всех нейронов (конкретного количества скрытых слоев)
+     */
+    virtual vector<float> saveWeights() noexcept = 0;
 
     virtual ~Perceptron() = default;
 };
@@ -90,6 +130,8 @@ public:
     float deltas_; ///< Градиенты весов
     float outputs_; ///< Выходы после sigmoid
     float bias_; ///< Смещение
+
+    ~Neuron() = default;
 
 };
 
@@ -116,6 +158,8 @@ public:
     int input_neurons_count_; ///< Количество входных нейронов
     int output_neurons_count_; ///< Количество выходных нейронов
 
+    ~Layer() = default;
+
 };
 
 /**
@@ -127,6 +171,10 @@ class Matrix_perceptron : public Perceptron {
 public:
 
     explicit Matrix_perceptron(int number, int hidden_layer_sizes) noexcept;
+
+    explicit Matrix_perceptron(int number, int hidden_layer_sizes, vector<float> weights) noexcept;
+
+    ~Matrix_perceptron() = default;
 
     /**
      * @brief Метод, который устанавливает количество скрытых слоев
@@ -166,7 +214,7 @@ public:
      * @brief Метод, который делает предсказание по переданному изображению (данными)
      * @param const vector<float>& image вектор входных значений
      */
-    int predict(const vector<float>& image) noexcept override;
+    int verify(const vector<float>& image) noexcept override;
 
     /**
      * @brief Метод, который обучает перцептрон на выборке
@@ -174,7 +222,7 @@ public:
      * @param std::vector<EmnistData>& EmnistData_ вектор объектов EmnistData,
      * которые содержат вектор входных значений(изображения) и индекс буквы
      */
-    void training(int epoch, std::vector<EmnistData> EmnistData_) noexcept override;
+    vector<float> training(std::vector<EmnistData> EmnistData_, int epoch) noexcept override;
 
      /**
      * @brief Метод, который тестирует перцептрон на тестовой выборке
@@ -182,9 +230,15 @@ public:
      */
     void experiment(float percentage) noexcept override;
 
-    void readWeights(const vector<float>& data);
+    void loadWeights(const vector<float>& data) noexcept override;
 
-    vector<float> saveWeights();
+    vector<float> saveWeights() noexcept override;
+
+    PerceptronType& type() noexcept override;
+
+    int number() noexcept override;
+
+    int hidden_layers() noexcept override;
 
 private:
 
@@ -202,6 +256,8 @@ private:
     vector<EmnistData> training_set; ///< тренировочная выборка
 
     float learning_rate_{0.1}; ///< Шаг обучения
+
+    PerceptronType Perceptron_type_{MATRIX_VIEW}; ///< Тип реализации
 };
 
 class Graph_perceptron : public Perceptron { };
