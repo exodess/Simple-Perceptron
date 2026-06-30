@@ -1,9 +1,9 @@
-#include "tools/tools.h"
+#include "../include/tools/tools.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
 
-#include "data/data.h"
+#include "../include/data/data.h"
 
 std::vector<EmnistData> EmnistDataReader::Read(const std::string &path_to_file) {
     std::vector<EmnistData> result_data;
@@ -20,16 +20,16 @@ std::vector<EmnistData> EmnistDataReader::Read(const std::string &path_to_file) 
 
     std::string line;
     while (std::getline(file, line)) {
-        std::vector<char> raw_data;
+        std::vector<int> raw_data;
         std::stringstream line_stream(line);
         std::string num;
 
         while (std::getline(line_stream, num, ',')) {
-            raw_data.push_back(static_cast<char>(std::stoi(num)));
+            raw_data.push_back(static_cast<int>(std::stoi(num)));
         }
 
         // Первое число - символ, который нарисован на этой картинке
-        char symbol = raw_data[0];
+        int symbol = raw_data[0];
         raw_data.erase(raw_data.begin());
 
         if (raw_data.size() != DEFAULT_WIDTH_RES * DEFAULT_HEIGHT_RES) {
@@ -48,7 +48,7 @@ std::vector<EmnistData> EmnistDataReader::Read(const std::string &path_to_file) 
     return result_data;
 }
 
-std::vector<float> EmnistDataReader::Normalize(const std::vector<char> &raw_data) noexcept {
+std::vector<float> EmnistDataReader::Normalize(const std::vector<int> &raw_data) noexcept {
     std::vector<float> result_data;
     result_data.reserve(DEFAULT_WIDTH_RES * DEFAULT_HEIGHT_RES); // В Read() уже есть проверка по размеру матрицы
 

@@ -1,8 +1,11 @@
 #include "../../include/perceptron/perceptron.h"
 #include <random>
 #include <iostream>
+#include <algorithm>
+#include <chrono>
+#include <thread>
 
-Neuron::Neuron() noexcept: deltas_{0.}, outputs_{0.} {}
+Neuron::Neuron() noexcept: deltas_{}, outputs_{} {}
 
 Matrix_perceptron::Matrix_perceptron(int number, int hidden_layer_sizes) noexcept: 
     number_{number}, hidden_layers_count_{hidden_layer_sizes}, layers_count{hidden_layer_sizes + 2}
@@ -16,15 +19,14 @@ Matrix_perceptron::Matrix_perceptron(int number, int hidden_layer_sizes) noexcep
         temp_neuron_count_ = 32;
     }
 
-    layers_[0] = Layer{INPUT_SIZE, temp_neuron_count_};
+    layers_[layers_count - 1] = Layer{temp_neuron_count_, COUNT_LETTERS};
 
-    for (int i = 1; i <= hidden_layer_sizes; ++i) {
-        int next = (i == hidden_layer_sizes) ? OUTPUT_SIZE : temp_neuron_count_ / 2;
-        layers_[i] = Layer{temp_neuron_count_, next};
-        temp_neuron_count_ /= 2;
+    for (int i = layers_count - 2; i > 0; --i) {
+        layers_[i] = Layer{temp_neuron_count_ * 2, temp_neuron_count_};
+        temp_neuron_count_ *= 2;
     }
 
-    layers_[hidden_layer_sizes + 1] = Layer{temp_neuron_count_ * 2, OUTPUT_SIZE};
+    layers_[0] = Layer{INPUT_SIZE, temp_neuron_count_};
 
     y_[number] = 1;
 }
@@ -43,8 +45,11 @@ Layer::Layer(int input_neurons_count_, int output_neurons_count_) noexcept:
     input_neurons_count_{input_neurons_count_}, output_neurons_count_{output_neurons_count_} 
 {
     neurons_.resize(output_neurons_count_);
-    for (auto& neuron : neurons_)
+
+    for (auto& neuron : neurons_) {
         neuron.weights_.resize(input_neurons_count_);
+    }
+
     setRandomWeights();
 }
 
@@ -57,22 +62,26 @@ void Matrix_perceptron::sumFunc() noexcept {
         ? normalize_input_ 
         : layers_[i - 1].output_vector_; 
 
-        layer.output_vector_.clear();
-        
+        layer.output_vector_.resize(layer.neurons_.size());
 
-        for (auto& neuron_ : layer.neurons_) {
-            neuron_.outputs_ = 0.;
-            for (int k = 0; k < neuron_.weights_.size(); ++k) {
-                neuron_.outputs_ += input_[k] * neuron_.weights_[k];
-            }
-            neuron_.sigmoidalFunc(neuron_.outputs_);
-            layer.output_vector_.push_back(neuron_.outputs_);
+        for (int i = 0; i < layer.neurons_.size(); ++i)
+        {
+            Neuron& neuron = layer.neurons_[i];
+
+            float sum = neuron.bias_;
+
+            for (int k = 0; k < neuron.weights_.size(); ++k)
+                sum += input_[k] * neuron.weights_[k];
+
+            neuron.outputs_ = neuron.sigmoidalFunc(sum);
+
+            layer.output_vector_[i] = neuron.outputs_;
         }
     }
 }
 
-void Neuron::sigmoidalFunc(float& x) noexcept {
-    x = 1. / (1. + exp(-x));
+float Neuron::sigmoidalFunc(float x) noexcept {
+    return  1. / (1. + exp(-x));
 }
 
 void Layer::setRandomWeights() noexcept {
@@ -81,6 +90,7 @@ void Layer::setRandomWeights() noexcept {
     std::uniform_real_distribution<> dist(-0.5, 0.5);
 
     for (auto& neuron : neurons_) {
+        neuron.bias_ = dist(gen);
         for (auto& weight : neuron.weights_) {
             weight = dist(gen);
         }
@@ -88,21 +98,16 @@ void Layer::setRandomWeights() noexcept {
 }
 
 void Matrix_perceptron::updateWeights() noexcept {
-    for (int i = 0; i < layers_count; ++i) {
-        Layer& layer = layers_[i];
+    for (int l = 0; l < layers_count; ++l) {
+        Layer& layer = layers_[l];
+        const vector<float>& input_ = (l == 0)
+            ? normalize_input_
+            : layers_[l - 1].output_vector_;
 
-        const vector<float>& input_ = (i == 0)
-        ? normalize_input_
-        : layers_[i - 1].output_vector_;
-
-        for (int i = 0; i < layer.output_neurons_count_; ++i) {
-            for (int j = 0; j < layer.input_neurons_count_; ++j) {
-                for (auto& neuron_ : layer.neurons_) {
-                    for (int w = 0; w < neuron_.weights_.size(); ++w) {
-                        neuron_.weights_[w] -= learning_rate_ * neuron_.deltas_ * input_[w];
-                    }
-                }
-            }
+        for (auto& neuron : layer.neurons_) {
+            neuron.bias_ -= learning_rate_ * neuron.deltas_;
+            for (int w = 0; w < neuron.weights_.size(); ++w)
+                neuron.weights_[w] -= learning_rate_ * neuron.deltas_ * input_[w];
         }
     }
 }
@@ -167,20 +172,120 @@ int Matrix_perceptron::predict(const vector<float>& image) noexcept  {
     return best_index_;
 }
 
-void Matrix_perceptron::training(int epoch, std::vector<EmnistData>& EmnistData_) noexcept {
-    for (int i = 0; i < epoch; ++i) {
-        float epoch_loss{};
+void Matrix_perceptron::training(int epoch, std::vector<EmnistData> EmnistData_) noexcept {
 
-        for (auto& input : EmnistData_) {
+    std::random_device rd;
+    std::mt19937 g(rd());
+
+    std::shuffle(EmnistData_.begin(), EmnistData_.end(), g);
+
+    training_set = vector<EmnistData>{EmnistData_.begin(), EmnistData_.begin() + 11839};
+    test_set = vector<EmnistData>{EmnistData_.begin() + 11840, EmnistData_.end()};
+
+    for (int j = 0; j < epoch; ++j) {
+
+        float epoch_loss{};
+        int correct = 0;
+
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(training_set.begin(), training_set.end(), g);
+
+        for (auto& input : training_set) {
 
             float y_training[OUTPUT_SIZE]{};
-            y_training[input.letter()] = 1;
+            y_training[static_cast<int>(input.letter()) - 1] = 1;
 
             setDataInput(input.data());
             sumFunc();
             epoch_loss += backPropagation(y_training);
         }
-        
-        std::cout << "Epoch loss is " << epoch_loss << std::endl;
+
+        for (auto& input : test_set) {
+
+            std::random_device rd;
+            std::mt19937 t(rd());
+            std::shuffle(training_set.begin(), training_set.end(), t);
+
+            if (predict(input.data()) == static_cast<int>(input.letter()) - 1)
+                correct++;
+        }
+
+        std::cout << "Epoch " << j + 1 
+                << " loss: " << epoch_loss / EmnistData_.size() <<
+                " average accuracy: " << (correct * 100. / 2960 ) << std::endl;
+    }
+}
+
+Metrics::Metrics() noexcept: 
+    accuracy{}, TP{}, FP{}, FN{} 
+    {}
+
+void Matrix_perceptron::experiment(float percentage) noexcept {
+
+    Metrics metrix_;
+    int test_size_ = static_cast<int>(percentage * test_set.size());
+
+    // std::random_device rd;
+    // std::mt19937 t(rd());
+    // std::shuffle(training_set.begin(), training_set.end(), t);
+
+    auto start = std::chrono::steady_clock::now();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    for (int i = 0; i < test_size_; ++i) {
+        EmnistData& input = test_set[i];
+        int letter_ = static_cast<int>(input.letter()) - 1;
+        int predict_ = predict(input.data());
+
+        if (predict(input.data()) == letter_) {
+            metrix_.accuracy++;
+            metrix_.TP[predict_]++;
+        } else {
+            metrix_.FP[predict_]++;
+            metrix_.FN[letter_]++;
+        }
+    }
+
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> duration = end - start;
+
+    std::cout << "average accuracy: " << metrix_.accuracy * 100. / test_size_ << "\n";
+
+    for (int i = 0; i < COUNT_LETTERS; ++i) {
+        int precision_ = metrix_.TP[i] / (metrix_.TP[i] + metrix_.FP[i]);
+        int recall_ = metrix_.TP[i] / (metrix_.TP[i] + metrix_.FP[i]);
+        std::cout << "Metrics for " << char(65 + i)
+        << " Precision: " << precision_
+        << " Recall: " << recall_
+        << " F-measure: " << 2. * (precision_ * recall_) / (precision_ + recall_);
+    }
+
+    std::cout << "\n" << "Total time spent " << duration.count() << " sec" << std::endl;
+
+}
+
+void Matrix_perceptron::readWeights(const vector<float>& data) {
+    vector<float> weights = data;
+    int i{};
+
+    for (auto& layer : layers_) {
+        for (auto& neuron : layer.neurons_) {
+            for (auto& weight : neuron.weights_) {
+                weight = weights[i++];
+            }
+        }
+    }
+}
+
+vector<float> Matrix_perceptron::saveWeights() {
+    vector<float> weights{};
+
+    for (auto& layer : layers_) {
+        for (auto& neuron : layer.neurons_) {
+            for (auto& weight : neuron.weights_) {
+                weights.push_back(weight);
+            }
+        }
     }
 }

@@ -64,7 +64,9 @@ public:
      * @param vector<vector<float>> dataset_normalize_input_ Вектор векторов входных значений,
      * где каждый вектор содержит данные о конкретной картинке
      */
-    virtual void training(int epochs, std::vector<EmnistData>& EmnistData_) noexcept = 0;
+    virtual void training(int epochs, std::vector<EmnistData> EmnistData_) noexcept = 0;
+
+    virtual void experiment(float percentage) noexcept = 0;
 
     virtual ~Perceptron() = default;
 };
@@ -82,11 +84,12 @@ public:
     /**
      * @brief Функция активации для выходного значения нейрона
      */
-    void sigmoidalFunc(float& x) noexcept;
+    float sigmoidalFunc(float x) noexcept;
 
     vector<float> weights_; ///< Веса входящих связей
     float deltas_; ///< Градиенты весов
     float outputs_; ///< Выходы после sigmoid
+    float bias_; ///< Смещение
 
 };
 
@@ -171,7 +174,17 @@ public:
      * @param std::vector<EmnistData>& EmnistData_ вектор объектов EmnistData,
      * которые содержат вектор входных значений(изображения) и индекс буквы
      */
-    void training(int epoch, std::vector<EmnistData>& EmnistData_) noexcept override;
+    void training(int epoch, std::vector<EmnistData> EmnistData_) noexcept override;
+
+     /**
+     * @brief Метод, который тестирует перцептрон на тестовой выборке
+     * @param percentage соотношение тестируемой выборки, задается дробным числом
+     */
+    void experiment(float percentage) noexcept override;
+
+    void readWeights(const vector<float>& data);
+
+    vector<float> saveWeights();
 
 private:
 
@@ -185,9 +198,21 @@ private:
     vector<Layer> layers_; ///< вектор всех слоев нейрона, где layers_[0] - входной слой, layers_[layers_count - 1] - выходной
     vector<float> normalize_input_; ///< вектор входных значений для одного изображения
 
+    vector<EmnistData> test_set; ///< тестовая выборка для обучения и эксперимента, формурется в training
+    vector<EmnistData> training_set; ///< тренировочная выборка
+
     float learning_rate_{0.1}; ///< Шаг обучения
 };
 
 class Graph_perceptron : public Perceptron { };
+
+struct Metrics {
+    float accuracy;
+    int TP[COUNT_LETTERS];
+    int FP[COUNT_LETTERS];
+    int FN[COUNT_LETTERS];
+
+    Metrics() noexcept;
+};
 
 #endif

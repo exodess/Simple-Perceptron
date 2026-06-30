@@ -52,7 +52,7 @@ public:
      * @param path Путь, куда нужно сохранять файл
      * @param data Массив данных, которые необходимо сохранить
      */
-    void saveData(const std::string& path, const std::vector<float>& data) noexcept;
+    void saveData(const std::string& path, const std::vector<float>& data);
 };
 
 /**
@@ -95,7 +95,7 @@ private:
      * 3. Транспонировать матрицу ("изображение" повернуто на бок)
      * @return Данные, пригодные к загрузке в перцептрон
      */
-    std::vector<float> Normalize(const std::vector<char>& raw_data) noexcept;
+    std::vector<float> Normalize(const std::vector<int>& raw_data) noexcept;
 };
 
 #endif

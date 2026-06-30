@@ -1,4 +1,6 @@
-#include "tools/tools.h"
+#include "include/tools/tools.h"
+#include "include/data/data.h"
+#include "include/perceptron/perceptron.h"
 #include <iostream>
 
 int main() {
@@ -6,11 +8,11 @@ int main() {
     std::cout << "Hello, World!" << std::endl;
 
     try {
-        auto res = csv_reader.Read("../materials/emnist/emnist-letters-test.csv");
+        auto res = csv_reader.Read("materials/emnist/emnist-letters-test.csv");
         std::cout << "EmnistDataReader: Считано " << res.size() << " примеров\n";
-        std::cout << "Первое изображение: " << static_cast<char>(res[0].letter() + 'a' - 1) << "\n";
+        std::cout << "Первое изображение: " << static_cast<char>(res[5].letter() + 'a' - 1) << "\n";
 
-        auto result_image = res[0].data();
+        auto result_image = res[5].data();
 
         for (auto i = 0; i < 28; ++i) {
             for (auto j = 0; j < 28; ++j) {
@@ -22,10 +24,13 @@ int main() {
                 else if (pixel < 0.5f && pixel >= 0.3f) symbol = '*';
                 else if (pixel < 0.3f && pixel >= 0.0f) symbol = '#';
 
-                std::cout << symbol << symbol;
+                // std::cout << symbol << symbol;
             }
-            std::cout << std::endl;
+            // std::cout << std::endl;
         }
+
+        unique_ptr<Perceptron> perceptron = Perceptron::create(MATRIX_VIEW, 0, 2);
+        perceptron->training(15, res);
 
     } catch (const std::exception& e) {
         std::cout << "Не удалось обработать изображение!\n";

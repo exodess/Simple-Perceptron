@@ -1,4 +1,4 @@
-#include "tools/tools.h"
+#include "../include/tools/tools.h"
 #include <fstream>
 #include <stdexcept>
 
@@ -26,7 +26,7 @@ std::vector<float> DataReader::Read(const std::string &path_to_file) {
     return result_data;
 }
 
-void DataReader::saveData(const std::string &path, const std::vector<float> &data) noexcept {
+void DataReader::saveData(const std::string &path, const std::vector<float> &data) {
     std::ofstream file;
     file.open(path);
 
