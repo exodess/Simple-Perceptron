@@ -81,14 +81,16 @@ namespace perc {
         return (res_index != -1) ? static_cast<char>(res_index + 'a') : '?';
     }
 
-    SuccessRate Controller::crossValidation(int k) noexcept {
-        SuccessRate result;
+    std::vector<ErrorChange> Controller::crossValidation(int k) noexcept {
+        std::vector<ErrorChange> result;
+        result.reserve(k);
+
         auto data = emnist_data_reader_->data();
 
         return result;
     }
 
-    void Controller::training(int count_epoch) noexcept {
+    std::vector<ErrorChange> Controller::training(int count_epoch) noexcept {
         auto data = emnist_data_reader_->data();
 
         perceptron_->training(count_epoch, data);

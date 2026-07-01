@@ -40,6 +40,41 @@ namespace perc {
     };
 
     /**
+     * @struct ErrorChange
+     * @brief Структура для хранения расширенной информации о том,
+     * как меняется значение ошибки в процессе обучения
+     */
+    struct ErrorChange {
+        /**
+         * @brief Добавляем информацию о новой эпохе после очередного обучения
+         * @param ref_error Контрольное значение ошибки
+         * @param error_values Множество значений ошибок,
+         * отражающие характер изменения ошибки
+         */
+        ErrorChange(float ref_error, const std::vector<float>& error_values) noexcept :
+        data_graph_({ref_error, error_values}) {}
+
+        /**
+         * @brief Получение контрольного значения ошибки
+         */
+        float refError() noexcept { return data_graph_.first; }
+
+        /**
+         * @brief Получение множества значений ошибок для построения графика
+         */
+        const std::vector<float>& data() noexcept { return data_graph_.second; }
+
+    private:
+        /**
+         * @brief Хранит в себе информацию об ошибках в конкретной эпохе в виде пары значений
+         * {контрольная_ошибка ; множество_точек_ошибок}.
+         * Массив точек отражает характер изменения ошибки при обучении.
+         * С их помощью строится график в GUI
+         */
+        std::pair<float, std::vector<float>> data_graph_;
+    };
+
+    /**
     * @class Controller
     * @brief Данный класс осуществляет управление всей логикой программы.
     * Реализует паттерн Facade - хранит в себе все остальные классы Backend'a.\n
@@ -88,13 +123,14 @@ namespace perc {
          * @param k Число групп, заданное пользователем
          * @return Информация о том, насколько успешно прошло обучение
          */
-        SuccessRate crossValidation(int k) noexcept;
+        std::vector<ErrorChange> crossValidation(int k) noexcept;
 
         /**
          * @brief Запускает обучение перцептрона
          * @param count_epoch Количество эпох, заданное пользователем
+         * @return Расширенная информация об ошибках по каждой эпохе
          */
-        void training(int count_epoch) noexcept;
+        std::vector<ErrorChange> training(int count_epoch) noexcept;
 
         /**
          * @brief Переключает реализацию перцептрона
