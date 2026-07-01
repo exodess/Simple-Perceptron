@@ -3,6 +3,8 @@
 #include <chrono>
 #include <iostream>
 #include <filesystem>
+#include <random>
+#include <algorithm>
 
 namespace perc {
 
@@ -25,20 +27,29 @@ namespace perc {
 
     SuccessRate Controller::testing(float frac) noexcept {
         SuccessRate result;
+        std::random_device rd;
+        std::mt19937 g(rd());
 
         auto data = emnist_data_reader_->data();
-        int size_data = static_cast<int>(data.size() * frac);
+        std::ranges::shuffle(data.begin(), data.end(), g);
+        data.erase(data.begin(), data.begin() + data.size() * (1.0 - frac));
+
+        return TestDataset(data);
+    }
+
+    SuccessRate Controller::TestDataset(std::vector<EmnistData> data) noexcept {
+        SuccessRate result;
         int count_correct_res = 0;
         std::map<int, int> correct_particular_res;
         std::map<int, int> particular_res;
 
         // Начинаем проверку и замеряем время
         auto begin_time = std::chrono::steady_clock::now();
-        for (int i = 0; i < size_data; ++i) {
+        for (int i = 0; i < data.size(); ++i) {
             // Берем рандомный датасет из списка
             int rand_emnist = std::rand() % data.size();
 
-            auto res = perceptron_->identify(data[rand_emnist].data());
+            auto res = perceptron_->predict(data[rand_emnist].data());
             auto correct_res = data[rand_emnist].index();
 
             count_correct_res += (res == correct_res);
@@ -51,9 +62,9 @@ namespace perc {
         // Фиксируем конец проверки
         auto end_time = std::chrono::steady_clock::now();
 
-        if (size_data > 0) {
+        if (data.size() > 0) {
             // Считаем долю правильных ответов
-            result.accuracy() = static_cast<float>(count_correct_res / size_data);
+            result.accuracy() = static_cast<float>(count_correct_res / data.size());
 
             // Считаем среднюю долю правильных ответов по классам
             float sum_precisions = 0.0f;
@@ -81,19 +92,41 @@ namespace perc {
         return (res_index != -1) ? static_cast<char>(res_index + 'a') : '?';
     }
 
-    std::vector<ErrorChange> Controller::crossValidation(int k) noexcept {
-        std::vector<ErrorChange> result;
-        result.reserve(k);
-
+    SuccessRate Controller::crossValidation(int k) noexcept {
+        SuccessRate result;
+        std::random_device rd;
+        std::mt19937 g(rd());
         auto data = emnist_data_reader_->data();
 
-        return result;
+        // Перемешиваем случайным образом выборку и делим на k частей
+        std::ranges::shuffle(data.begin(), data.end(), g);
+        int part = data.size() / k; // Размер одной части исходного датасета
+
+        for (auto i = 0; i < k; ++i) {
+            decltype(data) test_dataset(part);
+            auto train_dataset = data;
+            std::move(train_dataset.begin() + i * part, train_dataset.begin() + (i + 1) * part, test_dataset);
+
+            perceptron_->reset(); // Перцептрон по умолчанию
+            perceptron_->training(train_dataset); // Тренируем его на k-ой части датасета
+            auto rate = Controller::TestDataset(test_dataset); // Проверяем на остальной части выборки
+
+            result += rate;
+        }
+
+        return result / k;
     }
 
-    std::vector<ErrorChange> Controller::training(int count_epoch) noexcept {
+    std::vector<float> Controller::training(int count_epoch) noexcept {
         auto data = emnist_data_reader_->data();
+        std::vector<float> error_values(count_epoch);
 
-        perceptron_->training(count_epoch, data);
+        for (auto i = 0; i < count_epoch; ++i) {
+            auto res = perceptron_->training(data);
+            error_values.push_back(res);
+        }
+
+        return error_values;
     }
 
     void Controller::switchImplementation(PerceptronType type) noexcept {
