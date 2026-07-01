@@ -27,4 +27,6 @@
 #define MINIMUM_WINDOW_WIDTH 600
 #define MINIMUM_WINDOW_HEIGHT 600
 
+#define WEIGHTS_SAVE_FILE ".weights"
+
 #endif
