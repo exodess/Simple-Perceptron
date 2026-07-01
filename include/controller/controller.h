@@ -25,6 +25,26 @@ namespace perc {
         SuccessRate(float acc, float prec, float recall, float measure, float time) noexcept :
         average_accuracy_(acc), precision_(prec), recall_(recall), f_measure_(measure), time_spent_(time) {}
 
+        SuccessRate& operator+=(const SuccessRate& other) noexcept {
+            average_accuracy_ += other.average_accuracy_;
+            precision_ += other.precision_;
+            recall_ += other.recall_;
+            f_measure_ += other.f_measure_;
+            time_spent_ += other.time_spent_;
+
+            return *this;
+        }
+
+        SuccessRate& operator/(int n) noexcept {
+            average_accuracy_ /= n;
+            precision_ /= n;
+            recall_ /= n;
+            f_measure_ /= n;
+            time_spent_ /= n;
+
+            return *this;
+        }
+
         float& accuracy() noexcept { return average_accuracy_; }
         float& precision() noexcept { return precision_; }
         float& recall() noexcept { return recall_; }
@@ -37,41 +57,6 @@ namespace perc {
         float recall_; ///< Способност перцептрона находить все объекты нужного класса в датасете
         float f_measure_; ///< Универсальный показатель качества работы перцептрона (среднее между precision и recall)
         float time_spent_; ///< Общее затраченное время
-    };
-
-    /**
-     * @struct ErrorChange
-     * @brief Структура для хранения расширенной информации о том,
-     * как меняется значение ошибки в процессе обучения
-     */
-    struct ErrorChange {
-        /**
-         * @brief Добавляем информацию о новой эпохе после очередного обучения
-         * @param ref_error Контрольное значение ошибки
-         * @param error_values Множество значений ошибок,
-         * отражающие характер изменения ошибки
-         */
-        ErrorChange(float ref_error, const std::vector<float>& error_values) noexcept :
-        data_graph_({ref_error, error_values}) {}
-
-        /**
-         * @brief Получение контрольного значения ошибки
-         */
-        float refError() noexcept { return data_graph_.first; }
-
-        /**
-         * @brief Получение множества значений ошибок для построения графика
-         */
-        const std::vector<float>& data() noexcept { return data_graph_.second; }
-
-    private:
-        /**
-         * @brief Хранит в себе информацию об ошибках в конкретной эпохе в виде пары значений
-         * {контрольная_ошибка ; множество_точек_ошибок}.
-         * Массив точек отражает характер изменения ошибки при обучении.
-         * С их помощью строится график в GUI
-         */
-        std::pair<float, std::vector<float>> data_graph_;
     };
 
     /**
@@ -121,16 +106,16 @@ namespace perc {
         /**
          * @brief Запуск процесса обучения с применением кросс-валидации
          * @param k Число групп, заданное пользователем
-         * @return Информация о том, насколько успешно прошло обучение
+         * @return Усредненные оценки успешности обучения
          */
-        std::vector<ErrorChange> crossValidation(int k) noexcept;
+        SuccessRate crossValidation(int k) noexcept;
 
         /**
          * @brief Запускает обучение перцептрона
          * @param count_epoch Количество эпох, заданное пользователем
-         * @return Расширенная информация об ошибках по каждой эпохе
+         * @return Характер изменения значения ошибки в зависимости от эпохи
          */
-        std::vector<ErrorChange> training(int count_epoch) noexcept;
+        std::vector<float> training(int count_epoch) noexcept;
 
         /**
          * @brief Переключает реализацию перцептрона
@@ -153,6 +138,8 @@ namespace perc {
         std::unique_ptr<DataReader> data_reader_; ///< Считывает сохраненные веса перцептрона
         std::unique_ptr<EmnistDataReader> emnist_data_reader_; ///< Считывает выборки для тестирования/обучения перцептрона
         std::unique_ptr<Perceptron> perceptron_; ///< Модель перцептрона
+
+        SuccessRate TestDataset(std::vector<EmnistData> dataset) noexcept;
     };
 }
 
