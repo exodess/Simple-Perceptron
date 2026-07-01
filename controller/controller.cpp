@@ -2,6 +2,7 @@
 #include <map>
 #include <chrono>
 #include <iostream>
+#include <filesystem>
 
 namespace perc {
 
@@ -10,10 +11,22 @@ namespace perc {
     , emnist_data_reader_(std::make_unique<EmnistDataReader>())
     , perceptron_(std::make_unique<Perceptron>(MATRIX_VIEW)) {}
 
-    SuccessRate Controller::testing(const std::string &path, float frac) noexcept {
+    void Controller::open(const std::string& path) {
+        std::filesystem::path file(path);
+
+        if (file.extension().c_str() == ".csv") {
+            emnist_data_reader_->Read(path);
+        } else if (path == WEIGHTS_SAVE_FILE) {
+            data_reader_->Read(path);
+        } else {
+            throw std::runtime_error("The file could not be recognized: " + file.filename().string());
+        }
+    }
+
+    SuccessRate Controller::testing(float frac) noexcept {
         SuccessRate result;
 
-        auto data = emnist_data_reader_->Read(path);
+        auto data = emnist_data_reader_->data();
         int size_data = static_cast<int>(data.size() * frac);
         int count_correct_res = 0;
         std::map<int, int> correct_particular_res;
@@ -68,16 +81,15 @@ namespace perc {
         return (res_index != -1) ? static_cast<char>(res_index + 'a') : '?';
     }
 
-    SuccessRate Controller::crossValidation(const std::string &path, int k) noexcept {
+    SuccessRate Controller::crossValidation(int k) noexcept {
         SuccessRate result;
-        auto data = emnist_data_reader_->Read(path);
-        perceptron_->crossValidation(data, k);
+        auto data = emnist_data_reader_->data();
 
         return result;
     }
 
-    void Controller::training(const std::string &path, int count_epoch) noexcept {
-        auto data = emnist_data_reader_->Read(path);
+    void Controller::training(int count_epoch) noexcept {
+        auto data = emnist_data_reader_->data();
 
         perceptron_->training(count_epoch, data);
     }
@@ -91,16 +103,10 @@ namespace perc {
         perceptron_->hiddenLayer() = count;
     }
 
-    void Controller::saveWeights(const std::string &path) noexcept {
+    void Controller::saveWeights() noexcept {
         auto& data = perceptron_->weghts();
 
-        data_reader_->saveData(path, data);
-    }
-
-    void Controller::loadWeights(const std::string &path) noexcept {
-        auto data = data_reader_->Read(path);
-
-        perceptron_->weights() = data;
+        data_reader_->saveData(WEIGHTS_SAVE_FILE, data);
     }
 
 }

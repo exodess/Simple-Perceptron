@@ -56,14 +56,25 @@ namespace perc {
          * последующего управления ими
          */
         Controller() noexcept;
+
+        /**
+         * @brief Универсальный метод для открытия файлов,
+         * загруженных пользователем (кроме BMP изображений):
+         * - CSV файл с выборкой
+         * - Файл с весами перцептрона
+         * @param path Путь до файла, который нужно считать
+         * @note Если пользователь открывает файл с весами перцептрона,
+         * то они автоматически загружаются в перцептрон
+         */
+        void open(const std::string& path);
+
         /**
          * @brief Запускает процесс тестирования работоспособности перцептрона
-         * @param path Путь до файла, в котором хранится тестовая выборка
          * @param frac Показывает, на какой части выборки будет произведено тестирование,
          * где 0 - пустая выборка (вырожденная ситуация), а 1 - вся выборка целиком
          * @return Информация о том, насколько успешно прошло тестирование
          */
-        SuccessRate testing(const std::string& path, float frac) noexcept;
+        SuccessRate testing(float frac) noexcept;
 
         /**
          * @brief Запускает процесс классификацию картинки перцептроном
@@ -74,18 +85,16 @@ namespace perc {
 
         /**
          * @brief Запуск процесса обучения с применением кросс-валидации
-         * @param path Путь до файла с выборками
          * @param k Число групп, заданное пользователем
          * @return Информация о том, насколько успешно прошло обучение
          */
-        SuccessRate crossValidation(const std::string& path, int k) noexcept;
+        SuccessRate crossValidation(int k) noexcept;
 
         /**
          * @brief Запускает обучение перцептрона
-         * @param path Путь до файла с выборкой
          * @param count_epoch Количество эпох, заданное пользователем
          */
-        void training(const std::string& path, int count_epoch) noexcept;
+        void training(int count_epoch) noexcept;
 
         /**
          * @brief Переключает реализацию перцептрона
@@ -100,16 +109,9 @@ namespace perc {
         void switchHiddenLayers(int count) noexcept;
 
         /**
-         * @brief Сохраняет веса перцептрона в файл
-         * @param path Путь до файла, куда нужно сохранить данные
+         * @brief Сохраняет веса перцептрона в стандартный файл WEIGHTS_SAVE_FILE
          */
-        void saveWeights(const std::string& path) noexcept;
-
-        /**
-         * @brief Загружает ранее сохраненные веса в перцептрон
-         * @param path Путь до файла с весами
-         */
-        void loadWeights(const std::string& path) noexcept;
+        void saveWeights() noexcept;
 
     private:
         std::unique_ptr<DataReader> data_reader_; ///< Считывает сохраненные веса перцептрона
