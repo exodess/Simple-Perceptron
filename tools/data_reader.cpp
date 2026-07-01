@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 namespace perc {
-    std::vector<float> DataReader::Read(const std::string &path_to_file) {
+    void DataReader::Read(const std::string &path_to_file) {
         std::vector<float> result_data;
 
         std::ifstream file;
@@ -24,7 +24,8 @@ namespace perc {
         }
 
         file.close();
-        return result_data;
+
+        data_ = result_data;
     }
 
     void DataReader::saveData(const std::string &path, const std::vector<float> &data) noexcept {

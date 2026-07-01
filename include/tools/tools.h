@@ -16,21 +16,30 @@ namespace perc {
 
     /**
      * @class BaseFileReader
-     * @brief Абстрактный класс, описывающий минимальный функционал класса,
+     * @brief Абстрактный шаблонный класс, описывающий минимальный функционал класса,
      * который бы выполнял действия, связанные с файлами
      */
-    class BaseFileReader {
+    template <class T> class BaseFileReader {
     public:
+        virtual ~BaseFileReader() = default;
+
         /**
          * @brief Каждый класс-наследник должен обязательно иметь метод
          * для считывания данных из файла
          * @param path_to_file Путь до необходимого файла
-         * @return Массив данных, который потом будет обработан программой
-         * @warning Вид выходного массива данных может измениться в процессе разработки
+         * @note Считанные данные сохраняются в одном из ридере,
+         * который занимается данным видом файлов
          */
-        virtual std::vector<float> Read(const std::string& path_to_file) = 0;
+        virtual void Read(const std::string& path_to_file) = 0;
 
-        virtual ~BaseFileReader() = default;
+        /**
+         * @brief Передает считанные из файла данные в контроллер для их дальнейшей обработки
+         * @return Массив данных определенного типа, который определяется названием файла
+         */
+        std::vector<T> data() noexcept { return data_; }
+
+    protected:
+        std::vector<T> data_;
     };
 
     /**
@@ -38,15 +47,14 @@ namespace perc {
      * @brief Класс, ответственный за загрузку данных программы (весов перцептрона) и
      * сохранения их в отдельном файле
      */
-    class DataReader : public BaseFileReader {
+    class DataReader : public BaseFileReader<float> {
     public:
 
         /**
-         * @brief Считывает веса перцептрона из файла для их последующей загрузки в программу
+         * @brief Считывает веса перцептрона из файла и сохраняет для последующей загрузки
          * @param path_to_file Путь до файла с данными
-         * @return Массив данных, который был считан из файла
          */
-        std::vector<float> Read(const std::string& path_to_file) override;
+        void Read(const std::string& path_to_file) override;
 
         /**
          * @brief Сохраняет данные перцептрона в файл для того,
@@ -77,16 +85,15 @@ namespace perc {
      * @brief Класс, который считывает и обрабатывает emnist-letters данные из csv файла.
      * Необходим, когда нужно загрузить в перцептрон массив данных для обучения или тестирования
      */
-    class EmnistDataReader {
+    class EmnistDataReader : public BaseFileReader<EmnistData> {
     public:
         /**
          * @brief Считывает данные из csv файла, представляющие двумерный массив 26x26,
          * хранящий информацию о степени серости каждого пикселя (0 - черный, 255 - белый)
          * @param path_to_file Исходный файл с данными.
          * Внутри - N строк, в каждой из которых записаны через запятую числа от 0 до 255.
-         * @return Массив данных "символ - пиксели", которые можно загрузить в перцептрон
          */
-        std::vector<EmnistData> Read(const std::string& path_to_file);
+        void Read(const std::string& path_to_file) override;
 
     private:
         /**

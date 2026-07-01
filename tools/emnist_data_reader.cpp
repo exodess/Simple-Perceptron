@@ -5,7 +5,7 @@
 #include <iostream>
 
 namespace perc {
-    std::vector<EmnistData> EmnistDataReader::Read(const std::string &path_to_file) {
+    void EmnistDataReader::Read(const std::string &path_to_file) {
         std::vector<EmnistData> result_data;
 
         std::ifstream file;
@@ -45,7 +45,7 @@ namespace perc {
 
         file.close();
 
-        return result_data;
+        data_ = result_data;
     }
 
     std::vector<float> EmnistDataReader::Normalize(const std::vector<char> &raw_data) noexcept {
