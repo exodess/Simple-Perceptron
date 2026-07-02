@@ -72,8 +72,8 @@ namespace perc {
     struct EmnistData {
         EmnistData(const int index, const std::vector<float>& data) noexcept : index_(index), data_(data) {}
 
-        int& index() noexcept { return index_; }
-        const std::vector<float>& data() noexcept { return data_; }
+        int index() const noexcept { return index_; }
+        const std::vector<float>& data() const noexcept { return data_; }
 
     private:
         int index_; ///< Индекс символа, который представлен в виде этой картинки
