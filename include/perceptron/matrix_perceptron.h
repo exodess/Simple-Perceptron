@@ -70,16 +70,8 @@ namespace perc {
          */
         void _updateWeights() noexcept;
 
-        float y_[OUTPUT_SIZE]{}; ///< вектор ожидаемых значений (все значения равны нулю кроме y_[i], где i - индекс буквы)
-        int number_; ///< Индекс буквы
-
-        int hidden_layers_count_; ///< Количество скрытых слоев
-
         vector<Layer> layers_; ///< вектор всех слоев нейрона, где layers_[0] - входной слой, layers_[layers_count - 1] - выходной
         vector<float> normalize_input_; ///< вектор входных значений для одного изображения
-
-        vector<EmnistData> test_set; ///< тестовая выборка для обучения и эксперимента, формурется в training
-        vector<EmnistData> training_set; ///< тренировочная выборка
     };
 }
 
