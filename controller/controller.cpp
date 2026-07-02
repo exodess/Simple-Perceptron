@@ -1,4 +1,6 @@
 #include "controller/controller.h"
+#include "perceptron/matrix_perceptron.h"
+#include <data/data.h>
 #include <map>
 #include <chrono>
 #include <iostream>
@@ -11,7 +13,7 @@ namespace perc {
     Controller::Controller() noexcept
     : data_reader_(std::make_unique<DataReader>())
     , emnist_data_reader_(std::make_unique<EmnistDataReader>())
-    , perceptron_(std::make_unique<Perceptron>(MATRIX_VIEW)) {}
+    , perceptron_(std::make_unique<MatrixPerceptron>(MIN_HIDDEN)) {}
 
     void Controller::open(const std::string& path) {
         std::filesystem::path file(path);
@@ -26,7 +28,6 @@ namespace perc {
     }
 
     SuccessRate Controller::testing(float frac) noexcept {
-        SuccessRate result;
         std::random_device rd;
         std::mt19937 g(rd());
 
@@ -49,7 +50,7 @@ namespace perc {
             // Берем рандомный датасет из списка
             int rand_emnist = std::rand() % data.size();
 
-            auto res = perceptron_->predict(data[rand_emnist].data());
+            auto res = perceptron_->Verify(data[rand_emnist].data());
             auto correct_res = data[rand_emnist].index();
 
             count_correct_res += (res == correct_res);
@@ -87,7 +88,7 @@ namespace perc {
     }
 
     char Controller::verify(const std::vector<float> &data) noexcept {
-        int res_index = perceptron_->predict(data);
+        int res_index = perceptron_->Verify(data);
 
         return (res_index != -1) ? static_cast<char>(res_index + 'a') : '?';
     }
@@ -107,8 +108,8 @@ namespace perc {
             auto train_dataset = data;
             std::move(train_dataset.begin() + i * part, train_dataset.begin() + (i + 1) * part, test_dataset);
 
-            perceptron_->reset(); // Перцептрон по умолчанию
-            perceptron_->training(train_dataset); // Тренируем его на k-ой части датасета
+            perceptron_->Reset(); // Перцептрон по умолчанию
+            perceptron_->Train(train_dataset); // Тренируем его на k-ой части датасета
             auto rate = Controller::TestDataset(test_dataset); // Проверяем на остальной части выборки
 
             result += rate;
@@ -122,7 +123,7 @@ namespace perc {
         std::vector<float> error_values(count_epoch);
 
         for (auto i = 0; i < count_epoch; ++i) {
-            auto res = perceptron_->training(data);
+            auto res = perceptron_->Train(data);
             error_values.push_back(res);
         }
 
@@ -130,16 +131,36 @@ namespace perc {
     }
 
     void Controller::switchImplementation(PerceptronType type) noexcept {
-        perceptron_->type() = type;
+        // Сохраняем количество скрытых слоев
+        int count_hidden = perceptron_->hiddenLayers();
+
+        if (perceptron_->type() != type) {
+            // Сохраняем веса перцептрона
+            auto weights_data = perceptron_->GetWeights();
+
+            // Создаем перцептрон с таким же количеством скрытых слоев
+            perceptron_ =
+                (type == MATRIX_VIEW) ?
+                std::make_unique<MatrixPerceptron>(count_hidden) :
+                std::make_unique<GraphPerceptron>(count_hidden);
+
+            // Загружаем веса обратно
+            perceptron_->LoadWeights(weights_data);
+        }
     }
 
     void Controller::switchHiddenLayers(int count) noexcept {
         // Проверка количества скрытых слоев идет в GUI
-        perceptron_->hiddenLayer() = count;
+        if (count != perceptron_->hiddenLayers()) {
+            perceptron_ =
+                (perceptron_->type() == MATRIX_VIEW) ?
+                std::make_unique<MatrixPerceptron>(count) :
+                std::make_unique<GraphPerceptron>(count);
+        }
     }
 
     void Controller::saveWeights() noexcept {
-        auto& data = perceptron_->weghts();
+        auto data = perceptron_->GetWeights();
 
         data_reader_->saveData(WEIGHTS_SAVE_FILE, data);
     }
