@@ -1,8 +1,10 @@
-#include "../../include/perceptron/perceptron.h"
+#include "../../include/perceptron/matrix_perceptron.h"
 
-Layer::Layer() noexcept: input_neurons_count_{0}, output_neurons_count_{0} {}
+namespace perc {
 
-Layer::Layer(int input_neurons_count_, int output_neurons_count_) noexcept: 
+Matrix_Layer::Matrix_Layer() noexcept: input_neurons_count_{0}, output_neurons_count_{0} {}
+
+Matrix_Layer::Matrix_Layer(int input_neurons_count_, int output_neurons_count_) noexcept: 
     input_neurons_count_{input_neurons_count_}, output_neurons_count_{output_neurons_count_} 
 {
     neurons_.resize(output_neurons_count_);
@@ -12,9 +14,9 @@ Layer::Layer(int input_neurons_count_, int output_neurons_count_) noexcept:
     }
 }
 
-void Layer::setRandomWeights() noexcept {
-    std::random_device rd;
-    std::mt19937 gen(rd());
+void Matrix_Layer::setRandomWeights() noexcept {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
     std::uniform_real_distribution<> dist(-0.5, 0.5);
 
     for (auto& neuron : neurons_) {
@@ -23,4 +25,6 @@ void Layer::setRandomWeights() noexcept {
             weight = dist(gen);
         }
     }
+}
+
 }

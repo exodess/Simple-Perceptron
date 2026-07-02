@@ -1,7 +1,11 @@
-#include "../../include/perceptron/perceptron.h"
+#include "../../include/perceptron/matrix_perceptron.h"
 
-Neuron::Neuron() noexcept: deltas_{}, outputs_{} {}
+namespace perc {
 
-float Neuron::sigmoidalFunc(float x) noexcept {
+Matrix_Neuron::Matrix_Neuron() noexcept: deltas_{}, outputs_{}, bias_{} {}
+
+float Matrix_Neuron::sigmoidalFunc(float x) noexcept {
     return  1. / (1. + exp(-x));
+}
+
 }
