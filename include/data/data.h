@@ -20,6 +20,7 @@
 #define MIN_HIDDEN 2 ///< Минимальное количество скрытых слоев перцептрона
 #define MAX_HIDDEN 5 ///< Максимальное количество скрытых слоев перцептрона
 #define MAX_NEURONS 64
+#define LEARNING_RATE 0.1f
 
 // Настройки GUI
 #define DEFAULT_WINDOW_WIDTH 900
