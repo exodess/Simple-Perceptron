@@ -7,7 +7,6 @@
  * @author Tarasova Alina
  */
 
-#include <data/data.h>
 #include <perceptron/perceptron.h>
 
 namespace perc {
@@ -41,11 +40,16 @@ namespace perc {
         float Train(const std::vector<EmnistData>& dataset) noexcept override;
 
         /**
-         * @brief Осуществляет доступ к весам перцептрона для того,
-         * чтобы загрузить их в файл с помощью DataReader или сохранить в перцептроне
-         * @return Массив всех весов
+         * @brief Метод, загружающий веса в перцептрон при чтении их из файла
+         * @param data Массив весов для всех нейронов
+     */
+        void LoadWeights(const vector<float>& data) noexcept override;
+
+        /**
+         * @brief Метод, возращающий веса перцептрона для их последующего сохранения в файле
+         * @return Массив весов для всех нейронов (конкретного количества скрытых слоев)
          */
-        vector<float>& Weights() noexcept override;
+        vector<float> GetWeights() noexcept override;
 
     private:
         /**

@@ -26,7 +26,8 @@ namespace perc {
          * @param index Индекс буквы для обучения и предсказания
          * @param hidden_layers Количество скрытых слоев (от 2 до 5)
          */
-        Perceptron(int index, int hidden_layers) noexcept;
+        Perceptron(int index, int hidden_layers) noexcept: index_(index), hidden_layers_count_(hidden_layers) {}
+
         virtual ~Perceptron() = default;
 
         /**
@@ -62,11 +63,18 @@ namespace perc {
         virtual float Train(const std::vector<EmnistData>& data) noexcept = 0;
 
         /**
-         * @brief Осуществляет доступ к весам перцептрона для того,
-         * чтобы загрузить их в файл с помощью DataReader или сохранить в перцептроне
-         * @return Массив всех весов
+         * @brief Метод, загружающий веса в перцептрон.
+         * Веса можно загрузить либо при создании перцептрона (перегрузка конструктора),
+         * либо создать объект перцептрона и вызвать функцию на загрузку
+         * @param data Массив весов для всех нейронов
          */
-        virtual vector<float>& Weights() noexcept = 0;
+        virtual void LoadWeights(const vector<float>& data) noexcept = 0;
+
+        /**
+         * @brief Метод, возращающий веса перцептрона.
+         * @return Массив весов для всех нейронов (конкретного количества скрытых слоев)
+         */
+        virtual vector<float> GetWeights() noexcept = 0;
 
     protected:
         int index_; ///< Индекс буквы
