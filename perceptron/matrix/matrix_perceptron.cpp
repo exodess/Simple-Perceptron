@@ -2,7 +2,7 @@
 #include <data/data.h>
 
 namespace perc {
-    MatrixPerceptron::MatrixPerceptron(int hidden_layer_sizes) noexcept : Perceptron(hidden_layer_sizes) {
+    MatrixPerceptron::MatrixPerceptron(int hidden_layer_sizes) noexcept : Perceptron(MATRIX_VIEW, hidden_layer_sizes) {
         int layers_count = hidden_layer_sizes + 2;
         int temp_neuron_count = (hidden_layer_sizes < MAX_HIDDEN) ? 64 : 32;
 

@@ -14,6 +14,15 @@ using std::vector;
 
 namespace perc {
     /**
+     * @enum PerceptronType
+     * @brief Описывает способы конечной реалзизации перцептрона
+     */
+    enum PerceptronType {
+        MATRIX_VIEW, ///< Матричный вид
+        GRAPH_VIEW ///< С помощью графов
+    };
+
+    /**
      * @class Perceptron
      * @brief Абстрактный класс, описывающий основные методы
      * обучения и работы перцептрона
@@ -25,9 +34,14 @@ namespace perc {
          * @brief Инициализация класса перцептрона
          * @param hidden_layers Количество скрытых слоев (от 2 до 5)
          */
-        Perceptron(int hidden_layers) noexcept: hidden_layers_count_(hidden_layers) {}
+        Perceptron(PerceptronType type, int hidden_layers) noexcept: type_(type), hidden_layers_count_(hidden_layers) {}
 
         virtual ~Perceptron() = default;
+
+        /**
+         * @brief Передает реализацию перцептрона
+         */
+        PerceptronType type() noexcept { return type_; }
 
         /**
          * @brief Возвращает количество скрытых слоев
@@ -71,6 +85,7 @@ namespace perc {
         virtual vector<float> GetWeights() noexcept = 0;
 
     protected:
+        PerceptronType type_; ///< Тип перцептрона
         int hidden_layers_count_; ///< Количество скрытых слоев перцептрона
 
     };
