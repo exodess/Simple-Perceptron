@@ -38,77 +38,56 @@ enum PerceptronType {
 class Perceptron {
 public:
     /**
-     * @brief В зависимости от типа реализации в программе создается
-     * статический объект перцептрона: матричный или графовый
-     * @param type Тип реализации перцептрона
-     * @param number Индекс буквы для обучения и предсказания
+     * @brief Инициализация класса перцептрона
+     * @param index Индекс буквы для обучения и предсказания
      * @param hidden_layers Количество скрытых слоев (от 2 до 5)
-     * @return Указатель на объект выбранного типа
      */
-    static unique_ptr<Perceptron> create(PerceptronType type, int number, int hidden_layers) noexcept;
-
-    /**
-     * @brief Задает количество скрытых слоев (от 2 до 5)
-     * @param value Количество скрытых слоев, 
-     */
-    virtual void setHiddenLayer(int value) noexcept = 0;
-
-    /**
-     * @brief Возвращает тип реализации
-     * @return enum PerceptronType (тип реализации)
-     */
-    virtual PerceptronType& type() noexcept = 0;
+    Perceptron(int index, int hidden_layers) noexcept;
+    virtual ~Perceptron() = default;
 
     /**
      * @brief Возвращает индекс буквы
-     * @return индекс буквы
      */
-    virtual int number() noexcept = 0;
+    int index() noexcept { return index_; }
 
     /**
      * @brief Возвращает количество скрытых слоев
-     * @return количество скрытых слоев
      */
-    virtual int hidden_layers() noexcept = 0;
+    int hiddenLayers() noexcept { return hidden_layers_count_; }
+
+    /**
+     * @brief Приводит перцептрон к стандартному состоянию
+     * (как будто объект только создан)
+     */
+    virtual void Reset() noexcept = 0;
 
     /**
      * @brief Метод, возвращающий индекс нейрона с максимальный выходом
      * @return Индекс предсказанного значения
      */
-    virtual int verify(const vector<float>& image) noexcept = 0;
+    virtual int Verify(const vector<float>& image) noexcept = 0;
 
     /**
      * @brief Метод, обучающий перцептрон. Собирает в себе
      * суммирование произведений входных значений на веса и
      * метод обратного распространения. Работает для датасета,
      * обрабатывается целиком вектор изображения по очереди.
-     * @param epoch Количество эпох для обучения.
-     * @param vector<vector<float>> dataset_normalize_input_ Вектор векторов входных значений,
-     * где каждый вектор содержит данные о конкретной картинке
+     * @param data Массив выборок, где каждый элемент содержит данные о конкретной картинке
+     * @return Контрольное значение ошибки после обучения
      */
-    virtual vector<float> training(std::vector<EmnistData> EmnistData_, int epoch) noexcept = 0;
-
-    virtual void experiment(float percentage) noexcept = 0;
+    virtual float Train(std::vector<perc::EmnistData> data) noexcept = 0;
 
     /**
-     * @brief Метод, загружающий веса в перцептрон. Веса можно загрузить либо 
-     * при создании перцептрона (перегрузка конструктора), либо создать объект перцептрона
-     * и вызвать функцию на загрузку 
-     * (пример: perceptron = create(...); perceptron->loadWeights(dataReader.Read("data.txt"));)
-     * @param вектор весов для всех нейронов 
+     * @brief Осуществляет доступ к весам перцептрона для того,
+     * чтобы загрузить их в файл с помощью DataReader или сохранить в перцептроне
+     * @return
      */
-    virtual void loadWeights(const vector<float>& data) noexcept = 0;
+    virtual vector<float>& Weights() noexcept = 0;
 
-    /**
-     * @brief Метод, возращающий веса перцептрона. Может применяться отдельно либо вектор 
-     * будет формироваться самостоятельно на возврат из training.
-     * Пример самостоятельного возврата: perceptron = create(...); perceptron->training(...) (возвращает вектор); 
-     * dataReader.saveData("data.txt", perceptron->saveWeights()) (самостоятельный вызов);
-     * @return вектор весов для всех нейронов (конкретного количества скрытых слоев)
-     */
-    virtual vector<float> saveWeights() noexcept = 0;
+protected:
+    int index_; ///< Индекс буквы
+    int hidden_layers_count_; ///< Количество скрытых слоев перцептрона
 
-    virtual ~Perceptron() = default;
 };
 
 /**
