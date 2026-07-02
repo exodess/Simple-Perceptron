@@ -23,17 +23,11 @@ namespace perc {
     public:
         /**
          * @brief Инициализация класса перцептрона
-         * @param index Индекс буквы для обучения и предсказания
          * @param hidden_layers Количество скрытых слоев (от 2 до 5)
          */
-        Perceptron(int index, int hidden_layers) noexcept: index_(index), hidden_layers_count_(hidden_layers) {}
+        Perceptron(int hidden_layers) noexcept: hidden_layers_count_(hidden_layers) {}
 
         virtual ~Perceptron() = default;
-
-        /**
-         * @brief Возвращает индекс буквы
-         */
-        int index() noexcept { return index_; }
 
         /**
          * @brief Возвращает количество скрытых слоев
@@ -77,7 +71,6 @@ namespace perc {
         virtual vector<float> GetWeights() noexcept = 0;
 
     protected:
-        int index_; ///< Индекс буквы
         int hidden_layers_count_; ///< Количество скрытых слоев перцептрона
 
     };

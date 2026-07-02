@@ -18,7 +18,7 @@ namespace perc {
      */
     class MatrixPerceptron final : public Perceptron {
     public:
-        explicit MatrixPerceptron(int number, int hidden_layer_sizes) noexcept;
+        explicit MatrixPerceptron(int hidden_layer_sizes) noexcept;
         ~MatrixPerceptron() = default;
 
         /**
