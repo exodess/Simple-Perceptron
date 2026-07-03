@@ -70,6 +70,7 @@ namespace perc {
      * @brief Хранит данные для обучения/тестирования перцептрона
      */
     struct EmnistData {
+        EmnistData() noexcept : index_(0) {}
         EmnistData(const int index, const std::vector<float>& data) noexcept : index_(index), data_(data) {}
 
         int index() const noexcept { return index_; }
