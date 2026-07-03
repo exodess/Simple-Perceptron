@@ -16,13 +16,21 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets)
 include_directories(include)
 file(GLOB tools_src_files "tools/*.cpp")
 file(GLOB gui_files "gui/*.cpp" "include/gui/*.h")
+file(GLOB matrix_perceptron_src_files "perceptron/matrix/*.cpp")
+file(GLOB graph_perceptron_src_files "perceptron/graph/*.cpp")
+file(GLOB controller_src_files "controller/*.cpp" )
 
-add_library(TOOLS STATIC ${tools_src_files})
+# Статическая библиотека внутренней логики
+add_library(controller STATIC
+        ${controller_src_files}
+        ${matrix_perceptron_src_files}
+        ${graph_perceptron_src_files}
+        ${tools_src_files}
+)
 
 add_executable(Program main.cpp ${gui_files})
-target_link_libraries(
-        Program
-        TOOLS
+target_link_libraries(Program PRIVATE
+        controller
         Qt6::Widgets
         Qt6::OpenGLWidgets
 )
