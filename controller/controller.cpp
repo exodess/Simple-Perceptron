@@ -1,5 +1,6 @@
 #include "controller/controller.h"
 #include "perceptron/matrix_perceptron.h"
+#include "perceptron/graph_perceptron.h"
 #include <data/data.h>
 #include <map>
 #include <chrono>
@@ -13,7 +14,7 @@ namespace perc {
     Controller::Controller() noexcept
     : data_reader_(std::make_unique<DataReader>())
     , emnist_data_reader_(std::make_unique<EmnistDataReader>())
-    , perceptron_(std::make_unique<MatrixPerceptron>(MIN_HIDDEN)) {}
+    , perceptron_(std::make_unique<Matrix_perceptron>(MIN_HIDDEN)) {}
 
     void Controller::open(const std::string& path) {
         std::filesystem::path file(path);
@@ -104,13 +105,13 @@ namespace perc {
         int part = data.size() / k; // Размер одной части исходного датасета
 
         for (auto i = 0; i < k; ++i) {
-            decltype(data) test_dataset(part);
+            std::vector<EmnistData> test_dataset(part);
             auto train_dataset = data;
-            std::move(train_dataset.begin() + i * part, train_dataset.begin() + (i + 1) * part, test_dataset);
+            std::move(train_dataset.begin() + i * part, train_dataset.begin() + (i + 1) * part, test_dataset.begin());
 
             perceptron_->Reset(); // Перцептрон по умолчанию
             perceptron_->Train(train_dataset); // Тренируем его на k-ой части датасета
-            auto rate = Controller::TestDataset(test_dataset); // Проверяем на остальной части выборки
+            auto rate = TestDataset(test_dataset); // Проверяем на остальной части выборки
 
             result += rate;
         }
@@ -139,10 +140,11 @@ namespace perc {
             auto weights_data = perceptron_->GetWeights();
 
             // Создаем перцептрон с таким же количеством скрытых слоев
-            perceptron_ =
-                (type == MATRIX_VIEW) ?
-                std::make_unique<MatrixPerceptron>(count_hidden) :
-                std::make_unique<GraphPerceptron>(count_hidden);
+            if (type == MATRIX_VIEW) {
+                perceptron_ = std::make_unique<Matrix_perceptron>(count_hidden);
+            } else {
+                perceptron_ = std::make_unique<Graph_perceptron>(count_hidden);
+            }
 
             // Загружаем веса обратно
             perceptron_->LoadWeights(weights_data);
@@ -152,10 +154,11 @@ namespace perc {
     void Controller::switchHiddenLayers(int count) noexcept {
         // Проверка количества скрытых слоев идет в GUI
         if (count != perceptron_->hiddenLayers()) {
-            perceptron_ =
-                (perceptron_->type() == MATRIX_VIEW) ?
-                std::make_unique<MatrixPerceptron>(count) :
-                std::make_unique<GraphPerceptron>(count);
+            if (perceptron_->type() == MATRIX_VIEW) {
+                perceptron_ = std::make_unique<Matrix_perceptron>(count);
+            } else {
+                perceptron_ = std::make_unique<Graph_perceptron>(count);
+            }
         }
     }
 
