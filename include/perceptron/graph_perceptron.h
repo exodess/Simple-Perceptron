@@ -4,7 +4,7 @@
 #include "perceptron.h"
 
 /**
- * @file matrix_perceptron.h
+ * @file graph_perceptron.h
  * @brief В этом файле находятся класс перцептрона в графовой реализации и его составляющие (классы графового слоя и графового нейрона)
  * @author Tarasova Alina
  */
