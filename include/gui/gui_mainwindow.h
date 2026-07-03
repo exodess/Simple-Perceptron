@@ -57,11 +57,13 @@ public:
     QPushButton *btn_NormalTrain; ///< Кнопка "Обычное обучение"
     QPushButton *btn_CrossValTrain; ///< Кнопка "Обучение с кросс-валидацией"
     QStackedWidget *widget_TrainStack;
+    QPushButton *btn_LoadTrainSample; ///< Кнопка "Загрузить выборку"
+    QLabel *label_TrainSampleStatus; ///< Надпись "Загружена выборка: <имя_файла>"
+    QPushButton *btn_StartNormalTrain; ///< Кнопка "Начать обучение"
 
-    // Подстраница "Обычное обучение
+    // Подстраница "Обычное обучение"
     QWidget *widget_NormalTrainPage;
     QVBoxLayout *layout_NormalTrainPage;
-    QPushButton *btn_StartNormalTrain; ///< Кнопка "Начать обучение"
     QWidget *widget_GraphArea; ///< Контейнер для графика
 
     // Подстраница "Кросс-валидация"
@@ -274,10 +276,47 @@ public:
         layout_NormalTrainPage->setContentsMargins(0, 8, 0, 0);
         layout_NormalTrainPage->setSpacing(12);
 
+        // Строка 1: Кнопка "Загрузить выборку" (слева)
+        auto *rowLoadBtnWidget = new QWidget;
+        auto *layout_RowLoadBtn = new QHBoxLayout(rowLoadBtnWidget);
+        layout_RowLoadBtn->setContentsMargins(0, 0, 0, 0);
+
+        btn_LoadTrainSample = new QPushButton("Загрузить выборку");
+        btn_LoadTrainSample->setFixedWidth(180);
+        btn_LoadTrainSample->setFont(font_TrainNav);
+        layout_RowLoadBtn->addWidget(btn_LoadTrainSample);
+        layout_RowLoadBtn->addStretch(); // Сдвигает кнопку влево
+        layout_NormalTrainPage->addWidget(rowLoadBtnWidget);
+
+        // Строка 2: Надпись статуса загрузки (ниже кнопки загрузки, слева)
+        auto *rowStatusWidget = new QWidget;
+        auto *layout_RowStatus = new QHBoxLayout(rowStatusWidget);
+        layout_RowStatus->setContentsMargins(0, 0, 0, 0);
+
+        label_TrainSampleStatus = new QLabel("");
+        QFont font_Status = font_TrainNav;
+        font_Status.setPointSize(11);
+        font_Status.setItalic(true);
+        label_TrainSampleStatus->setFont(font_Status);
+        label_TrainSampleStatus->setVisible(false); // Скрыта до момента загрузки файла
+        layout_RowStatus->addWidget(label_TrainSampleStatus);
+        layout_RowStatus->addStretch(); // Сдвигает надпись влево
+        layout_NormalTrainPage->addWidget(rowStatusWidget);
+
+        // Строка 3: Кнопка "Начать обучение" (справа, ширина по контенту)
+        auto *rowStartBtnWidget = new QWidget;
+        auto *layout_RowStartBtn = new QHBoxLayout(rowStartBtnWidget);
+        layout_RowStartBtn->setContentsMargins(0, 0, 0, 0);
+        layout_RowStartBtn->addStretch(); // Сдвигает кнопку вправо
+
         btn_StartNormalTrain = new QPushButton("Начать обучение");
         btn_StartNormalTrain->setMinimumHeight(40);
         btn_StartNormalTrain->setFont(font_TrainNav);
-        layout_NormalTrainPage->addWidget(btn_StartNormalTrain);
+
+        // Ограничиваем ширину только размером текста внутри кнопки
+        btn_StartNormalTrain->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        layout_RowStartBtn->addWidget(btn_StartNormalTrain);
+        layout_NormalTrainPage->addWidget(rowStartBtnWidget);
 
         // Контейнер (заглушка) под график, который будет растягиваться
         widget_GraphArea = new QWidget;
