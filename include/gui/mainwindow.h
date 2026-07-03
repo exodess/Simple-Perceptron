@@ -28,7 +28,7 @@ namespace gui {
          * @param index номер страницы справа: 0 - эксперимент, 1 - обучение, 2 - загрузить
          */
         void on_btn_NavigationButton_clicked(int index) noexcept;
-        void on_btn_LoadSample_clicked() noexcept; ///< Обработка нажатия на кнопку загрузки тестовой выборки
+        void on_btn_LoadTestSample_clicked() noexcept; ///< Обработка нажатия на кнопку загрузки тестовой выборки
 
         // ==============================
         // === Страница "Эксперимент" ===
@@ -45,6 +45,7 @@ namespace gui {
 
         void on_spin_CountEpochs_valueChanged() noexcept; ///< Обработка спинбокса для задания количества эпох обучения
 
+        void on_btn_LoadTrainSample_clicked() noexcept;
         /**
          * @brief Обработка нажатия кнопки "Начать обучение"
          * на странице "Обучение" - "Обычное обучение"
