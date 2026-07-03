@@ -51,7 +51,7 @@ namespace gui {
     void MainWindow::on_btn_LoadSample_clicked() noexcept {
         QString fileName = QFileDialog::getOpenFileName(
             this, "Открыть тестовую выборку", QString(),
-            "CVS Files (*.cvs);;All Files (*)");
+            "CSV Files (*.csv);;All Files (*)");
 
         if (!fileName.isEmpty()) {
             qDebug() << "Загружен файл " << fileName;
@@ -127,13 +127,17 @@ namespace gui {
     void MainWindow::on_btn_SaveWeights_clicked() noexcept {
         QString fileName = QFileDialog::getOpenFileName(
             this, "Выберите файл для сохранения весов", QString(),
-            "Weights File (*.weights);;All Files (*)");
+            "All Files (*)");
 
         if (!fileName.isEmpty()) {
+            if ("." + QFileInfo(fileName).suffix() != WEIGHTS_SAVE_FILE_EXTENSION) {
+                fileName += WEIGHTS_SAVE_FILE_EXTENSION;
+            }
+
             qDebug() << "Веса сохранены в файле " << fileName;
 
             current_test_sample_ = fileName;
-            controller_->saveWeights();
+            controller_->saveWeights(fileName.toStdString());
         }
     }
 
@@ -149,7 +153,5 @@ namespace gui {
             controller_->open(fileName.toStdString());
         }
     }
-
-
 
 }

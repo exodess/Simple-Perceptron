@@ -19,9 +19,9 @@ namespace perc {
     void Controller::open(const std::string& path) {
         std::filesystem::path file(path);
 
-        if (file.extension().c_str() == ".csv") {
+        if (file.extension().string() == ".csv") {
             emnist_data_reader_->Read(path);
-        } else if (path == WEIGHTS_SAVE_FILE) {
+        } else if (file.extension().string() == WEIGHTS_SAVE_FILE_EXTENSION) {
             data_reader_->Read(path);
         } else {
             throw std::runtime_error("The file could not be recognized: " + file.filename().string());
@@ -162,10 +162,10 @@ namespace perc {
         }
     }
 
-    void Controller::saveWeights() noexcept {
+    void Controller::saveWeights(const std::string& dest) noexcept {
         auto data = perceptron_->GetWeights();
 
-        data_reader_->saveData(WEIGHTS_SAVE_FILE, data);
+        data_reader_->saveData(dest, data);
     }
 
 }

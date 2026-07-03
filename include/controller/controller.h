@@ -130,9 +130,10 @@ namespace perc {
         void switchHiddenLayers(int count) noexcept;
 
         /**
-         * @brief Сохраняет веса перцептрона в стандартный файл WEIGHTS_SAVE_FILE
+         * @brief Сохраняет веса перцептрона в файл
+         * @param dest Файл, указанный пользователем (с расширением WEIGHTS_SAVE_FILE_EXTENSION)
          */
-        void saveWeights() noexcept;
+        void saveWeights(const std::string& dest) noexcept;
 
     private:
         std::unique_ptr<DataReader> data_reader_; ///< Считывает сохраненные веса перцептрона
