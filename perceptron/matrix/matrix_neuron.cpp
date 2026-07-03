@@ -1,10 +1,12 @@
-#include "perceptron/perceptron.h"
-#include <cmath>
+#include "../../include/perceptron/matrix_perceptron.h"
 
 namespace perc {
-    Neuron::Neuron() noexcept: deltas_{}, outputs_{}, bias_{} {}
 
-    float Neuron::sigmoidalFunc(float x) noexcept {
-        return 1. / (1. + exp(-x));
-    }
+Matrix_Neuron::Matrix_Neuron(int inputs_count) noexcept {
+    weights_.resize(inputs_count);
+}
+
+Matrix_Neuron::Matrix_Neuron() noexcept: Neuron() {}
+
+
 }

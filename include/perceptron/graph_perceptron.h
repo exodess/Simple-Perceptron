@@ -3,6 +3,12 @@
 
 #include "perceptron.h"
 
+/**
+ * @file matrix_perceptron.h
+ * @brief В этом файле находятся класс перцептрона в графовой реализации и его составляющие (классы графового слоя и графового нейрона)
+ * @author Tarasova Alina
+ */
+
 namespace perc {
 
 /**
@@ -22,58 +28,34 @@ struct Edge {
 
     Edge() noexcept;
 
-    Edge(Graph_Neuron* from, Graph_Neuron* to, float weight) noexcept;
+    explicit Edge(Graph_Neuron* from, Graph_Neuron* to, float weight) noexcept;
 
     Graph_Neuron* from_; ///< Указатель на начало ребра (нейрон)
     Graph_Neuron* to_; ///< Указатель на конец ребра (нейрон)
     float weight_; ///< Передаваемый вес между нейронами
 };
 
-class Graph_Neuron {
+class Graph_Neuron : public Neuron {
 public:
-
     Graph_Neuron() noexcept;
 
-    Graph_Neuron(vector<Edge> edges_) noexcept;
-
-    ~Graph_Neuron() = default;
-
-    /**
-     * @brief Функция активации для выходного значения нейрона
-     */
-    float sigmoidalFunc(float x) noexcept;
-
-    /**
-     * @brief Метод, устанавливающие рандомные значения весов нейронов
-     */
-    float setRandomWeight() noexcept;
-
-    vector<Edge*> inputs_; ///< Вектор граней (связи от текущего нейрона ко всем в предыдущем слое)
-    vector<Edge*> outputs_; ///< Вектор граней (связи от текущего нейрона ко всем в следующем слое)
-
-    float deltas_; ///< Градиенты весов
-    float output_; ///< Выходы после sigmoid
-    float bias_; ///< Смещение
+    std::vector<Edge*> inputs_; ///< Вектор граней (связи от текущего нейрона ко всем в предыдущем слое)
+    std::vector<Edge*> outputs_; ///< Вектор граней (связи от текущего нейрона ко всем в следующем слое)
 };
 
 /**
  * @class Graph_Layer
  * @brief Класс слоя, содержащий нейроны и информацию о них.
  */
-class Graph_Layer {
+class Graph_Layer : public Layer{
 public:
 
     Graph_Layer() noexcept;
 
-    Graph_Layer(int input_neurons_count_, int output_neurons_count_) noexcept;
+    explicit Graph_Layer(int input_neurons_count_, int output_neurons_count_) noexcept;
 
-    ~Graph_Layer() = default;
-
-    vector<Graph_Neuron> neurons_; ///< Вектор нейронов слоя
-
-    int input_neurons_count_; ///< Количество входных нейронов
-    int output_neurons_count_; ///< Количество выходных нейронов
-
+    std::vector<Graph_Neuron> neurons_;  ///< Вектор нейронов слоя
+    std::vector<float> output_vector_; ///< Вектор выходов нейронов слоя
 };
 
 /**
@@ -82,27 +64,29 @@ public:
  * обучения и работы перцептрона в графовой реализации
  */
 
-class Graph_perceptron : public Perceptron { 
+class Graph_perceptron final : public Perceptron { 
 public:
     explicit Graph_perceptron(int hidden_layer_sizes) noexcept;
 
-    explicit Graph_perceptron(int hidden_layer_sizes, vector<float>& weights) noexcept;
-
     ~Graph_perceptron() = default;
 
-    int Verify(const vector<float>& image) noexcept override;
+    void Reset() noexcept override;
+
+    int Verify(const std::vector<float>& image) noexcept override;
 
     float Train(const std::vector<EmnistData>& data) noexcept override;
 
-    void LoadWeights(const vector<float>& data) noexcept override;
+    void LoadWeights(const std::vector<float>& data) noexcept override;
 
-    vector<float> GetWeights() noexcept override;
+    std::vector<float> GetWeights() noexcept override;
+
+private:
 
     /**
      * @brief Метод, который устанавливает новые данные для перцептрона.
-     * @param vector<float> normalize_input вектор входных значений
+     * @param std::vector<float> normalize_input вектор входных значений
      */
-    void setDataInput(const vector<float>& normalize_input) noexcept;
+    void setDataInput(const std::vector<float>& normalize_input) noexcept;
 
     /**
      * @brief Метод, который делает полный проход по слоям перцептрона,
@@ -122,23 +106,24 @@ public:
     float backPropagation(float expected_[OUTPUT_SIZE]) noexcept;
 
     /**
-     * @brief Метод, который задает рандомные значения весам
+     * @brief Метод, который обновляет веса в ходе обучения
      */
     void updateWeights() noexcept;
 
-private:
-
-    int layers_count; ///< Количество всех слоев перцептрона
-    int hidden_layers_count_; ///< Количество скрытых слоев
-    int epochs_; ///< Количество эпох обучения
-
-    vector<Graph_Layer> layers_; ///< вектор всех слоев нейрона, где layers_[0] - входной слой, layers_[layers_count - 1] - выходной
-    vector<Edge> all_edges_; ///< вектор граней между нейронами
-    vector<float> normalize_input_; ///< вектор входных значений для одного изображения
-
-    float learning_rate_{0.1}; ///< Шаг обучения
+    /**
+     * @brief Метод, который задает рандомные значения весам
+     */
+    float setRandomWeight() noexcept;
 
     PerceptronType Perceptron_type_{GRAPH_VIEW}; ///< Тип реализации
+
+    int layers_count; ///< Количество всех слоев перцептрона
+    std::vector<Graph_Layer> layers_; ///< вектор всех слоев нейрона, где layers_[0] - входной слой, layers_[layers_count - 1] - выходной
+    std::vector<Edge> all_edges_; ///< вектор граней между нейронами
+
+    std::vector<float> normalize_input_; ///< вектор входных значений для одного изображения
+    float learning_rate_{0.1}; ///< Шаг обучения
+
 };
 
 }

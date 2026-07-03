@@ -2,19 +2,7 @@
 
 namespace perc {
 
-Graph_Neuron::Graph_Neuron() noexcept: deltas_{}, output_{}, bias_{} {}
-
-float Graph_Neuron::sigmoidalFunc(float x) noexcept {
-    return  1. / (1. + exp(-x));
-}
-
-float Graph_Neuron::setRandomWeight() noexcept {
-    static std::random_device rd;
-    static  std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dist(-0.5, 0.5);
-
-    return dist(gen);
-}
+Graph_Neuron::Graph_Neuron() noexcept: Neuron() {}
 
 Edge::Edge() noexcept: from_{nullptr}, to_(nullptr), weight_(0.) {}
 
