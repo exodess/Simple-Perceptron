@@ -12,6 +12,8 @@
 #include <QComboBox>
 #include <QSpinBox>
 
+#include "data/data.h"
+
 QT_BEGIN_NAMESPACE
 
 class GUI_MainWindow {
@@ -64,16 +66,21 @@ public:
     // Подстраница "Обычное обучение"
     QWidget *widget_NormalTrainPage;
     QVBoxLayout *layout_NormalTrainPage;
+
+    QWidget *widget_CrossValSettings;
+    QFormLayout *layout_CrossValSettings;
+    QLabel *label_EpochsGroups;
+    QSpinBox *spin_KGroups; ///< Выбор количества эпох обучения
     QWidget *widget_GraphArea; ///< Контейнер для графика
 
     // Подстраница "Кросс-валидация"
     QWidget *widget_CrossValTrainPage;
     QVBoxLayout *layout_CrossValTrainPage;
 
-    QWidget *widget_CrossValSettings;
-    QFormLayout *layout_CrossValSettings;
+    QWidget *widget_CountEpochsSettings;
+    QFormLayout *layout_CountEpochsSettings;
     QLabel *label_KGroups;
-    QSpinBox *spin_KGroups; ///< Выбор количества групп k
+    QSpinBox *spin_EpochsGroups; ///< Выбор количества групп k
 
     QPushButton *btn_StartCrossValTrain; ///< Кнопка "Начать обучение" (кросс-валидация)
 
@@ -276,6 +283,21 @@ public:
         layout_NormalTrainPage->setContentsMargins(0, 8, 0, 0);
         layout_NormalTrainPage->setSpacing(12);
 
+        widget_CountEpochsSettings = new QWidget;
+        layout_CountEpochsSettings = new QFormLayout(widget_CountEpochsSettings);
+        layout_CountEpochsSettings->setContentsMargins(0, 0, 0, 0);
+
+        label_EpochsGroups = new QLabel("Количество эпох:");
+        label_EpochsGroups->setFont(font_TrainNav);
+        spin_EpochsGroups = new QSpinBox;
+        spin_EpochsGroups->setRange(MIN_COUNT_EPOCHS, MAX_COUNT_EPOCHS);
+        spin_EpochsGroups->setSingleStep(1);
+        spin_EpochsGroups->setValue(DEFAULT_COUNT_EPOCHS);
+        spin_EpochsGroups->setFont(font_TrainNav);
+        layout_CountEpochsSettings->addRow(label_EpochsGroups, spin_EpochsGroups);
+
+        layout_NormalTrainPage->addWidget(widget_CountEpochsSettings);
+
         // Строка 1: Кнопка "Загрузить выборку" (слева)
         auto *rowLoadBtnWidget = new QWidget;
         auto *layout_RowLoadBtn = new QHBoxLayout(rowLoadBtnWidget);
@@ -347,8 +369,9 @@ public:
         label_KGroups = new QLabel("Количество групп (k):");
         label_KGroups->setFont(font_TrainNav);
         spin_KGroups = new QSpinBox;
-        spin_KGroups->setRange(10, 120);
+        spin_KGroups->setRange(MIN_K, MAX_K);
         spin_KGroups->setSingleStep(1);
+        spin_KGroups->setValue(DEFAULT_K);
         spin_KGroups->setFont(font_TrainNav);
         layout_CrossValSettings->addRow(label_KGroups, spin_KGroups);
 
@@ -428,7 +451,7 @@ public:
         label_HiddenLayers = new QLabel("Количество скрытых слоев:");
         label_HiddenLayers->setFont(font_Normal);
         spin_HiddenLayers = new QSpinBox();
-        spin_HiddenLayers->setRange(2, 5); // Ограничение от 2 до 5
+        spin_HiddenLayers->setRange(MIN_HIDDEN, MAX_HIDDEN); // Ограничение от 2 до 5
         spin_HiddenLayers->setFont(font_Normal);
 
         layout_GeneralSettings->addRow(label_HiddenLayers, spin_HiddenLayers);
