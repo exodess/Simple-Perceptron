@@ -3,6 +3,12 @@
 
 #include "perceptron.h"
 
+/**
+ * @file matrix_perceptron.h
+ * @brief В этом файле находятся класс перцептрона в матричной реализации и его составляющие (классы матричного слоя и матричного нейрона)
+ * @author Tarasova Alina
+ */
+
 namespace perc {
 
 /**
@@ -11,23 +17,13 @@ namespace perc {
  * Составляет слои перцептрона
  */
 
-class Matrix_Neuron {
+class Matrix_Neuron : public Neuron {
 public:
-
     Matrix_Neuron() noexcept;
 
-    ~Matrix_Neuron() = default;
+    explicit Matrix_Neuron(int inputs_count) noexcept;
 
-    /**
-     * @brief Функция активации для выходного значения нейрона
-     */
-    float sigmoidalFunc(float x) noexcept;
-
-    vector<float> weights_; ///< Веса входящих связей
-    float deltas_; ///< Градиенты весов
-    float outputs_; ///< Выходы после sigmoid
-    float bias_; ///< Смещение
-
+    std::vector<float> weights_;
 };
 
 /**
@@ -35,14 +31,14 @@ public:
  * @brief Класс слоя, содержащий нейроны и информацию о них.
  * На первой итерации устанавливает рандомные веса каждому из нейронов
  */
-class Matrix_Layer {
+class Matrix_Layer : public Layer {
 public:
 
     Matrix_Layer() noexcept;
 
     Matrix_Layer(int input_neurons_count_, int output_neurons_count_) noexcept;
 
-        ~Matrix_Layer() = default;
+    ~Matrix_Layer() = default;
 
     /**
      * @brief Метод, устанавливающий рандомные веса один раз 
@@ -50,11 +46,8 @@ public:
      */
     void setRandomWeights() noexcept;
 
-    vector<Matrix_Neuron> neurons_; ///< Вектор нейронов слоя
-    vector<float> output_vector_; ///< Вектор выходных значений нейронов слоя
-
-    int input_neurons_count_; ///< Количество входных нейронов
-    int output_neurons_count_; ///< Количество выходных нейронов
+    std::vector<Matrix_Neuron> neurons_; ///< Вектор нейронов слоя
+    std::vector<float> output_vector_; ///< Вектор выходных значений нейронов слоя
 };
 
 /**
@@ -62,30 +55,30 @@ public:
  * @brief Класс, описывающий основные методы
  * обучения и работы перцептрона в матричной реализации
  */
-class Matrix_perceptron : public Perceptron {
+class Matrix_perceptron final : public Perceptron {
 public:
 
     explicit Matrix_perceptron(int hidden_layer_sizes) noexcept;
-
-    explicit Matrix_perceptron(int hidden_layer_sizes, vector<float> weights) noexcept;
 
     ~Matrix_perceptron() = default;
 
     void Reset() noexcept override;
 
-    int Verify(const vector<float>& image) noexcept override;
+    int Verify(const std::vector<float>& image) noexcept override;
 
     float Train(const std::vector<EmnistData>& data) noexcept override;
 
-    void LoadWeights(const vector<float>& data) noexcept override;
+    void LoadWeights(const std::vector<float>& data) noexcept override;
 
-    vector<float> GetWeights() noexcept override;
+    std::vector<float> GetWeights() noexcept override;
+
+private:
 
     /**
      * @brief Метод, который устанавливает новые данные для перцептрона.
-     * @param vector<float> normalize_input вектор входных значений
+     * @param std::vector<float> normalize_input вектор входных значений
      */
-    void setDataInput(const vector<float>& normalize_input) noexcept;
+    void setDataInput(const std::vector<float>& normalize_input) noexcept;
 
     /**
      * @brief Метод, который делает полный проход по слоям перцептрона,
@@ -111,16 +104,13 @@ public:
 
 private:
 
-    int layers_count; ///< Количество всех слоев перцептрона
-    int hidden_layers_count_; ///< Количество скрытых слоев
-    int epochs_; ///< Количество эпох обучения
-
-    vector<Matrix_Layer> layers_; ///< вектор всех слоев нейрона, где layers_[0] - входной слой, layers_[layers_count - 1] - выходной
-    vector<float> normalize_input_; ///< вектор входных значений для одного изображения
-
-    float learning_rate_{0.1}; ///< Шаг обучения
-
     PerceptronType Perceptron_type_{MATRIX_VIEW}; ///< Тип реализации
+
+    int layers_count; ///< Количество всех слоев перцептрона
+    std::vector<Matrix_Layer> layers_; ///< вектор всех слоев нейрона, где layers_[0] - входной слой, layers_[layers_count - 1] - выходной
+
+    std::vector<float> normalize_input_; ///< вектор входных значений для одного изображения
+    float learning_rate_{0.1}; ///< Шаг обучения
 };
 
 }

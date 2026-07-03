@@ -9,13 +9,14 @@
 
 #include "../tools/tools.h"
 #include "../data/data.h"
-#include <vector>
+#include <memory>
 #include <random>
 #include <algorithm>
-
-using std::vector;
+#include <vector>
+#include <cmath>
 
 namespace perc {
+
     /**
      * @enum PerceptronType
      * @brief Описывает способы конечной реалзизации перцептрона
@@ -61,7 +62,7 @@ namespace perc {
          * @brief Метод, возвращающий индекс нейрона с максимальный выходом
          * @return Индекс предсказанного значения
          */
-        virtual int Verify(const vector<float>& image) noexcept = 0;
+        virtual int Verify(const std::vector<float>& image) noexcept = 0;
 
         /**
          * @brief Метод, обучающий перцептрон. Собирает в себе
@@ -79,19 +80,56 @@ namespace perc {
          * либо создать объект перцептрона и вызвать функцию на загрузку
          * @param data Массив весов для всех нейронов
          */
-        virtual void LoadWeights(const vector<float>& data) noexcept = 0;
+        virtual void LoadWeights(const std::vector<float>& data) noexcept = 0;
 
         /**
          * @brief Метод, возращающий веса перцептрона.
          * @return Массив весов для всех нейронов (конкретного количества скрытых слоев)
          */
-        virtual vector<float> GetWeights() noexcept = 0;
+        virtual std::vector<float> GetWeights() noexcept = 0;
 
     protected:
         PerceptronType type_; ///< Тип перцептрона
         int hidden_layers_count_; ///< Количество скрытых слоев перцептрона
 
     };
+
+    /**
+     * @class Neuron
+     * @brief Базовый класс нейрона
+     */
+    class Neuron {
+    public:
+        Neuron() noexcept: deltas_{}, output_{}, bias_{} {}
+
+        /**
+        * @brief Функция активации для выходного значения нейрона
+        */
+        float sigmoidalFunc(float x) noexcept {
+            return 1. / (1. + exp(-x));
+        };
+
+        float deltas_; ///< Градиенты весов
+        float output_; ///< Выходы после sigmoid
+        float bias_; ///< Смещение
+    };
+
+    /**
+     * @class Layer
+     * @brief Базовый класс слоя
+     */
+    class Layer {
+    public:
+        Layer() noexcept: 
+            input_neurons_count_{}, output_neurons_count_{} {}
+
+        Layer(int input_neurons_count_, int output_neurons_count_) noexcept: 
+            input_neurons_count_{input_neurons_count_}, output_neurons_count_{output_neurons_count_} {}
+    
+        int input_neurons_count_; ///< Количество входных нейронов
+        int output_neurons_count_; ///< Количество выходных нейронов
+    };
+
 }
 
 #endif

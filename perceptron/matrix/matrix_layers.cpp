@@ -2,10 +2,10 @@
 
 namespace perc {
 
-Matrix_Layer::Matrix_Layer() noexcept: input_neurons_count_{0}, output_neurons_count_{0} {}
+Matrix_Layer::Matrix_Layer() noexcept: Layer() {}
 
 Matrix_Layer::Matrix_Layer(int input_neurons_count_, int output_neurons_count_) noexcept: 
-    input_neurons_count_{input_neurons_count_}, output_neurons_count_{output_neurons_count_} 
+    Layer{input_neurons_count_, output_neurons_count_} 
 {
     neurons_.resize(output_neurons_count_);
 
