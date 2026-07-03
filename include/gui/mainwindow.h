@@ -2,6 +2,7 @@
 #define PERCEPTRON_MAIN_WINDOW_H
 
 #include "gui_mainwindow.h"
+#include "controller/controller.h"
 #include <QMainWindow>
 
 namespace gui {
@@ -36,6 +37,7 @@ namespace gui {
         void connectSignals() noexcept; ///< Соединяет все слоты с сигналами в приложении
 
         std::unique_ptr<GUI_MainWindow> ui_; ///< Управление пользовательским интерфейсом
+        std::unique_ptr<perc::Controller> controller_;
         QString current_test_sample_; ///< Название файла, откуда загружается тестовая выборка
         float part_sample_; ///< Какая часть тестовой выборки будет загружена
 

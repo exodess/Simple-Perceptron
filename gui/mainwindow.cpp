@@ -7,6 +7,7 @@ namespace gui {
     MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui_{std::make_unique<GUI_MainWindow>()}
+    , controller_(std::make_unique<perc::Controller>())
     , part_sample_(1.0f)
     {
         setWindowTitle("Перцептрон");
@@ -42,7 +43,9 @@ namespace gui {
 
         if (!fileName.isEmpty()) {
             qDebug() << "Загружен файл " << fileName;
+
             current_test_sample_ = fileName;
+            controller_->open(fileName.toStdString());
 
             ui_->slider_Sample->setVisible(true);
         }
@@ -51,6 +54,10 @@ namespace gui {
     void MainWindow::on_btn_StartSample_clicked() {
         if (!current_test_sample_.isEmpty()) {
             qDebug() << "Начало прогона тестовой выборки\n";
+
+            auto res = controller_->testing(part_sample_);
+
+            // Выводим на экран информацию из res
         }
     }
 
