@@ -7,6 +7,10 @@
 #include <QLabel>
 #include <QStackedWidget>
 #include <QSlider>
+#include <QGroupBox>
+#include <QFormLayout>
+#include <QComboBox>
+#include <QSpinBox>
 
 QT_BEGIN_NAMESPACE
 
@@ -21,10 +25,7 @@ public:
     QButtonGroup *group_NavigationButtons; ///< Эксклюзивная группа кнопок
     QPushButton *btn_ExperimentPage; ///< Кнопка «Эксперимент»
     QPushButton *btn_TrainingPage; ///< Кнопка «Обучение»
-    QPushButton *btn_LoadPage; ///< Кнопка «Загрузить»
-
-    // Содержимое страницы "Обучение"
-    // Содержимое страницы "Загрузить"
+    QPushButton *btn_SettingsPage; ///< Кнопка «Настройки»
 
     // Область содержимого (правая колонка)
     QStackedWidget *widget_ContentStack; ///< Переключаемые страницы
@@ -51,11 +52,25 @@ public:
     QLayout *layout_TrainingPage;
 
     // ==============================
-    // Содержимое страницы "Загрузка"
+    // Содержимое страницы "Настройка"
     // ==============================
     QWidget *widget_LoadPage;
-    QLabel *label_LoadPage;
-    QLayout *layout_LoadPage;
+    QVBoxLayout *layout_LoadPage;
+
+    // Область "Общие настройки"
+    QGroupBox *group_GeneralSettings;
+    QFormLayout *layout_GeneralSettings;
+    QLabel *label_ImplMenu;
+    QComboBox *combo_ImplMenu; ///< Меню выбора реализации перцептрона
+    QLabel *label_HiddenLayers;
+    QSpinBox *spin_HiddenLayers; ///< Переключатель скрытых слоев
+
+    // Область "Настройка весов"
+    QGroupBox *group_WeightsSettings;
+    QVBoxLayout *layout_WeightsSettings;
+    QHBoxLayout *layout_WeightsButtons;
+    QPushButton *btn_SaveWeights; ///< Кнопка "Сохранить"
+    QPushButton *btn_LoadWeights; ///< Кнопка "Загрузить"
 
     void setupUI() {
         widget_CentralWidget = new QWidget();
@@ -86,10 +101,10 @@ public:
 
         btn_ExperimentPage = createNavButton("Эксперимент");
         btn_TrainingPage = createNavButton("Обучение");
-        btn_LoadPage = createNavButton("Загрузить");
+        btn_SettingsPage = createNavButton("Настройки");
 
         // Стили кнопок
-        for (auto btn : {btn_ExperimentPage, btn_TrainingPage, btn_LoadPage}) {
+        for (auto btn : {btn_ExperimentPage, btn_TrainingPage, btn_SettingsPage}) {
             auto font = btn->font();
             font.setPointSize(13);
             font.setItalic(true);
@@ -99,11 +114,11 @@ public:
         // Индексы совпадают с порядком страниц в m_contentStack
         group_NavigationButtons->addButton(btn_ExperimentPage, 0);
         group_NavigationButtons->addButton(btn_TrainingPage, 1);
-        group_NavigationButtons->addButton(btn_LoadPage, 2);
+        group_NavigationButtons->addButton(btn_SettingsPage, 2);
 
         layout_NavigationPanel->addWidget(btn_ExperimentPage);
         layout_NavigationPanel->addWidget(btn_TrainingPage);
-        layout_NavigationPanel->addWidget(btn_LoadPage);
+        layout_NavigationPanel->addWidget(btn_SettingsPage);
 
         widget_NavigationPanel->setFixedWidth(140);
         layout_RootHorizontal->addWidget(widget_NavigationPanel);
@@ -191,14 +206,72 @@ public:
     }
 
     void createLoadPage() {
-        // Создание страницы "Тренировка"
         widget_LoadPage = new QWidget;
-        label_LoadPage = new QLabel("Загрузить", widget_LoadPage);
-        layout_LoadPage = new QVBoxLayout(new QLabel("Загрузить", widget_LoadPage));
+        layout_LoadPage = new QVBoxLayout(widget_LoadPage);
+        layout_LoadPage->setContentsMargins(16, 16, 16, 16);
+        layout_LoadPage->setSpacing(16);
 
-        label_LoadPage->setAlignment(Qt::AlignHCenter);
-        layout_LoadPage->addWidget(label_LoadPage);
+        // Общие настройки
+        group_GeneralSettings = new QGroupBox("Общие настройки");
+        QFont font_Group = group_GeneralSettings->font();
+        font_Group.setPointSize(12);
+        font_Group.setBold(true);
+        group_GeneralSettings->setFont(font_Group);
 
+        layout_GeneralSettings = new QFormLayout(group_GeneralSettings);
+        layout_GeneralSettings->setLabelAlignment(Qt::AlignLeft);
+        layout_GeneralSettings->setSpacing(12);
+
+        QFont font_Normal = widget_LoadPage->font();
+        font_Normal.setPointSize(11);
+
+        // Выбор реализации перцептрона
+        label_ImplMenu = new QLabel("Выбор реализации перцептрона:");
+        label_ImplMenu->setFont(font_Normal);
+        combo_ImplMenu = new QComboBox();
+        combo_ImplMenu->addItem("Матричная");
+        combo_ImplMenu->addItem("Графовая");
+        combo_ImplMenu->setFont(font_Normal);
+        layout_GeneralSettings->addRow(label_ImplMenu, combo_ImplMenu);
+
+        // Переключение количества скрытых слоев
+        label_HiddenLayers = new QLabel("Количество скрытых слоев:");
+        label_HiddenLayers->setFont(font_Normal);
+        spin_HiddenLayers = new QSpinBox();
+        spin_HiddenLayers->setRange(2, 5); // Ограничение от 2 до 5
+        spin_HiddenLayers->setFont(font_Normal);
+
+        layout_GeneralSettings->addRow(label_HiddenLayers, spin_HiddenLayers);
+        layout_LoadPage->addWidget(group_GeneralSettings);
+
+        // ===============
+        // Настройка весов
+        // ===============
+        group_WeightsSettings = new QGroupBox("Настройка весов");
+        group_WeightsSettings->setFont(font_Group);
+        group_WeightsSettings->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+        layout_WeightsSettings = new QVBoxLayout(group_WeightsSettings);
+        layout_WeightsSettings->addStretch(); // Сдвигаем все последующие элементы (кнопки) вниз
+
+        layout_WeightsButtons = new QHBoxLayout();
+        layout_WeightsButtons->addStretch(); // Сдвигаем кнопки в правую сторону
+
+        btn_SaveWeights = new QPushButton("Сохранить");
+        btn_SaveWeights->setFixedWidth(120);
+        btn_SaveWeights->setFont(font_Normal);
+
+        btn_LoadWeights = new QPushButton("Загрузить");
+        btn_LoadWeights->setFixedWidth(120);
+        btn_LoadWeights->setFont(font_Normal);
+
+        layout_WeightsButtons->addWidget(btn_SaveWeights);
+        layout_WeightsButtons->addWidget(btn_LoadWeights);
+        layout_WeightsSettings->addLayout(layout_WeightsButtons);
+
+        layout_LoadPage->addWidget(group_WeightsSettings);
+
+        // Добавляем страницу в основной стек
         widget_ContentStack->addWidget(widget_LoadPage);
     }
 
