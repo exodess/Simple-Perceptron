@@ -115,15 +115,10 @@ private:
      */
     float setRandomWeight() noexcept;
 
-    PerceptronType Perceptron_type_{GRAPH_VIEW}; ///< Тип реализации
-
-    int layers_count; ///< Количество всех слоев перцептрона
     std::vector<Graph_Layer> layers_; ///< вектор всех слоев нейрона, где layers_[0] - входной слой, layers_[layers_count - 1] - выходной
     std::vector<Edge> all_edges_; ///< вектор граней между нейронами
 
     std::vector<float> normalize_input_; ///< вектор входных значений для одного изображения
-    float learning_rate_{0.1}; ///< Шаг обучения
-
 };
 
 }

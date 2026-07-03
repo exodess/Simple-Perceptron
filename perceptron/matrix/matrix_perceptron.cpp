@@ -2,15 +2,15 @@
 
 namespace perc {
 
-Matrix_perceptron::Matrix_perceptron(int hidden_layer_sizes) noexcept: Perceptron(MATRIX_VIEW, hidden_layer_sizes), layers_count{hidden_layer_sizes + 2}
+Matrix_perceptron::Matrix_perceptron(int hidden_layer_sizes) noexcept: Perceptron(MATRIX_VIEW, hidden_layer_sizes)
 {
-    layers_.resize(layers_count);
+    layers_.resize(hidden_layer_sizes + 2);
 
     int temp_neuron_count_ = (hidden_layer_sizes < MAX_HIDDEN) ? 64 : 32;
 
-    layers_[layers_count - 1] = Matrix_Layer{temp_neuron_count_, COUNT_LETTERS};
+    layers_[hidden_layer_sizes + 1] = Matrix_Layer{temp_neuron_count_, COUNT_LETTERS};
 
-    for (int i = layers_count - 2; i > 0; --i) {
+    for (int i = hidden_layer_sizes; i > 0; --i) {
         layers_[i] = Matrix_Layer{temp_neuron_count_ * 2, temp_neuron_count_};
         temp_neuron_count_ *= 2;
     }
@@ -32,7 +32,7 @@ void Matrix_perceptron::setDataInput(const std::vector<float>& normalize_input) 
 }
 
 void Matrix_perceptron::sumFunc() noexcept {
-    for (int i = 0; i < layers_count; ++i) {
+    for (int i = 0; i < layers_.size(); ++i) {
         Matrix_Layer& layer = layers_[i];
 
         const std::vector<float>& input_ = 
@@ -60,16 +60,16 @@ void Matrix_perceptron::sumFunc() noexcept {
 }
 
 void Matrix_perceptron::updateWeights() noexcept {
-    for (int l = 0; l < layers_count; ++l) {
+    for (int l = 0; l < layers_.size(); ++l) {
         Matrix_Layer& layer = layers_[l];
         const std::vector<float>& input_ = (l == 0)
             ? normalize_input_
             : layers_[l - 1].output_vector_;
 
         for (auto& neuron : layer.neurons_) {
-            neuron.bias_ -= learning_rate_ * neuron.deltas_;
+            neuron.bias_ -= LEARNING_RATE * neuron.deltas_;
             for (int w = 0; w < neuron.weights_.size(); ++w)
-                neuron.weights_[w] -= learning_rate_ * neuron.deltas_ * input_[w];
+                neuron.weights_[w] -= LEARNING_RATE * neuron.deltas_ * input_[w];
         }
     }
 }
@@ -87,7 +87,7 @@ float Matrix_perceptron::backPropagation(float expected_[OUTPUT_SIZE]) noexcept 
     }
 
     //обработка слоев с конца
-    for (int i = layers_count - 2; i > -1; i--) {
+    for (int i = layers_.size() - 2; i > -1; i--) {
         Matrix_Layer& layer_current = layers_[i];
         Matrix_Layer& layer_next = layers_[i + 1];
         
@@ -120,7 +120,7 @@ int Matrix_perceptron::Verify(const std::vector<float>& image) noexcept  {
     setDataInput(image);
     sumFunc();
 
-    Matrix_Layer& last_layer_ = layers_[layers_count - 1];
+    Matrix_Layer& last_layer_ = layers_.back();
     int best_index_{};
     float max_output_{last_layer_.neurons_[0].output_};
 

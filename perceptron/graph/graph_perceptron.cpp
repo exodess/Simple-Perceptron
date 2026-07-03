@@ -2,9 +2,9 @@
 
 namespace perc {
 
-Graph_perceptron::Graph_perceptron(int hidden_layers_count) noexcept: Perceptron(GRAPH_VIEW, hidden_layers_count), layers_count{hidden_layers_count + 2} {
+Graph_perceptron::Graph_perceptron(int hidden_layers_count) noexcept: Perceptron(GRAPH_VIEW, hidden_layers_count) {
     
-    layers_.resize(layers_count);
+    layers_.resize(hidden_layers_count + 2);
     
     std::vector<int> layer_sizes;
     layer_sizes.push_back(INPUT_SIZE);
@@ -16,18 +16,18 @@ Graph_perceptron::Graph_perceptron(int hidden_layers_count) noexcept: Perceptron
     }
     layer_sizes.push_back(COUNT_LETTERS);
     
-    for (int i = 0; i < layers_count; ++i) {
+    for (int i = 0; i < layers_.size(); ++i) {
         int prev_size = (i == 0) ? 0 : layer_sizes[i-1];
         int curr_size = layer_sizes[i];
         layers_[i] = Graph_Layer{prev_size, curr_size};
     }
 
     int total_edges = 0;
-    for (int i = 0; i < layers_count - 1; ++i)
+    for (int i = 0; i < layers_.size() - 1; ++i)
         total_edges += layers_[i].neurons_.size() * layers_[i + 1].neurons_.size();
     all_edges_.reserve(total_edges);
         
-    for (int i = 0; i < layers_count - 1; ++i) {
+    for (int i = 0; i < layers_.size() - 1; ++i) {
         Graph_Layer& layer = layers_[i];
         Graph_Layer& next_layer = layers_[i + 1];
         int prev_size = layer.neurons_.size();
@@ -67,7 +67,7 @@ float Graph_perceptron::setRandomWeight() noexcept {
 
 void Graph_perceptron::Reset() noexcept {
         
-    for (int i = 0; i < layers_count - 1; ++i) {
+    for (int i = 0; i < layers_.size() - 1; ++i) {
         Graph_Layer& layer = layers_[i];
         Graph_Layer& next_layer = layers_[i + 1];
         int prev_size = layer.neurons_.size();
@@ -91,7 +91,7 @@ void Graph_perceptron::sumFunc() noexcept {
     for (auto& neuron : layers_[0].neurons_)
         neuron.output_ = normalize_input_[i++];
 
-    for (int l = 1; l < layers_count; ++l) {
+    for (int l = 1; l < layers_.size(); ++l) {
         Graph_Layer& layer = layers_[l];
 
         // #pragma omp parallel for
@@ -107,13 +107,13 @@ void Graph_perceptron::sumFunc() noexcept {
 }
 
 void Graph_perceptron::updateWeights() noexcept {
-    for (int l = 1; l < layers_count; ++l) {
+    for (int l = 1; l < layers_.size(); ++l) {
         Graph_Layer& layer = layers_[l];
 
         for (int i = 0; i < (int)layer.neurons_.size(); ++i) {
             auto& neuron = layer.neurons_[i];
                 for (auto& input : neuron.inputs_) {
-                    input->weight_ -=  learning_rate_ * neuron.deltas_ * input->from_->output_;
+                    input->weight_ -=  LEARNING_RATE * neuron.deltas_ * input->from_->output_;
                 }
         }
     }
@@ -133,7 +133,7 @@ float Graph_perceptron::backPropagation(float expected_[OUTPUT_SIZE]) noexcept {
     }
 
     //обработка слоев с конца
-    for (int i = layers_count - 2; i > -1; i--) {
+    for (int i = layers_.size() - 2; i > -1; i--) {
         Graph_Layer& layer_current = layers_[i];
         Graph_Layer& layer_next = layers_[i + 1];
         
@@ -166,7 +166,7 @@ int Graph_perceptron::Verify(const std::vector<float>& image) noexcept  {
     setDataInput(image);
     sumFunc();
 
-    Graph_Layer& last_layer_ = layers_[layers_count - 1];
+    Graph_Layer& last_layer_ = layers_.back();
     int best_index_{};
     float max_output_{last_layer_.neurons_[0].output_};
 
