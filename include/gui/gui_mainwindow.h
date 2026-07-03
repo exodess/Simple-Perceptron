@@ -48,8 +48,40 @@ public:
     // Содержимое страницы "Обучение"
     // ==============================
     QWidget *widget_TrainingPage;
-    QLabel *label_TrainingPage;
-    QLayout *layout_TrainingPage;
+    QVBoxLayout *layout_TrainingPage;
+
+    // Внутренняя навигация
+    QWidget *widget_TrainNav;
+    QHBoxLayout *layout_TrainNav;
+    QButtonGroup *group_TrainNav;
+    QPushButton *btn_NormalTrain; ///< Кнопка "Обычное обучение"
+    QPushButton *btn_CrossValTrain; ///< Кнопка "Обучение с кросс-валидацией"
+    QStackedWidget *widget_TrainStack;
+
+    // Подстраница "Обычное обучение
+    QWidget *widget_NormalTrainPage;
+    QVBoxLayout *layout_NormalTrainPage;
+    QPushButton *btn_StartNormalTrain; ///< Кнопка "Начать обучение"
+    QWidget *widget_GraphArea; ///< Контейнер для графика
+
+    // Подстраница "Кросс-валидация"
+    QWidget *widget_CrossValTrainPage;
+    QVBoxLayout *layout_CrossValTrainPage;
+
+    QWidget *widget_CrossValSettings;
+    QFormLayout *layout_CrossValSettings;
+    QLabel *label_KGroups;
+    QSpinBox *spin_KGroups; ///< Выбор количества групп k
+
+    QPushButton *btn_StartCrossValTrain; ///< Кнопка "Начать обучение" (кросс-валидация)
+
+    QGroupBox *group_CrossValResults; ///< Область "Результат"
+    QVBoxLayout *layout_CrossValResults;
+    QLabel *label_ResAccuracy;
+    QLabel *label_ResPrecision;
+    QLabel *label_ResRecall;
+    QLabel *label_ResFMeasure;
+    QLabel *label_ResTime;
 
     // ==============================
     // Содержимое страницы "Настройка"
@@ -194,13 +226,132 @@ public:
     }
 
     void createTrainingPage() {
-        // Создание страницы "Тренировка"
         widget_TrainingPage = new QWidget;
-        label_TrainingPage = new QLabel("Обучение", widget_TrainingPage);
-        layout_TrainingPage = new QVBoxLayout(new QLabel("Обучение", widget_TrainingPage));
+        layout_TrainingPage = new QVBoxLayout(widget_TrainingPage);
+        layout_TrainingPage->setContentsMargins(16, 16, 16, 16);
+        layout_TrainingPage->setSpacing(16);
 
-        label_TrainingPage->setAlignment(Qt::AlignCenter);
-        layout_TrainingPage->addWidget(label_TrainingPage);
+        // Внутренняя навигация в верхней части
+        widget_TrainNav = new QWidget;
+        layout_TrainNav = new QHBoxLayout(widget_TrainNav);
+        layout_TrainNav->setContentsMargins(0, 0, 0, 0);
+        layout_TrainNav->setSpacing(12);
+
+        group_TrainNav = new QButtonGroup(widget_TrainingPage);
+        group_TrainNav->setExclusive(true);
+
+        btn_NormalTrain = new QPushButton("Обычное обучение");
+        btn_NormalTrain->setCheckable(true);
+        btn_NormalTrain->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        btn_NormalTrain->setMinimumHeight(45);
+
+        btn_CrossValTrain = new QPushButton("Обучение с кросс-валидацией");
+        btn_CrossValTrain->setCheckable(true);
+        btn_CrossValTrain->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        btn_CrossValTrain->setMinimumHeight(45);
+
+        QFont font_TrainNav = btn_NormalTrain->font();
+        font_TrainNav.setPointSize(12);
+        btn_NormalTrain->setFont(font_TrainNav);
+        btn_CrossValTrain->setFont(font_TrainNav);
+
+        group_TrainNav->addButton(btn_NormalTrain, 0);
+        group_TrainNav->addButton(btn_CrossValTrain, 1);
+
+        layout_TrainNav->addWidget(btn_NormalTrain);
+        layout_TrainNav->addWidget(btn_CrossValTrain);
+
+        layout_TrainingPage->addWidget(widget_TrainNav);
+
+        // Внутренний стек страницы
+        widget_TrainStack = new QStackedWidget;
+
+        // ===================================
+        // === Страница "Обычное обучение" ===
+        // ===================================
+        widget_NormalTrainPage = new QWidget;
+        layout_NormalTrainPage = new QVBoxLayout(widget_NormalTrainPage);
+        layout_NormalTrainPage->setContentsMargins(0, 8, 0, 0);
+        layout_NormalTrainPage->setSpacing(12);
+
+        btn_StartNormalTrain = new QPushButton("Начать обучение");
+        btn_StartNormalTrain->setMinimumHeight(40);
+        btn_StartNormalTrain->setFont(font_TrainNav);
+        layout_NormalTrainPage->addWidget(btn_StartNormalTrain);
+
+        // Контейнер (заглушка) под график, который будет растягиваться
+        widget_GraphArea = new QWidget;
+        widget_GraphArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        widget_GraphArea->setStyleSheet("background-color: #f5f5f5; border: 1px solid #ccc;");
+
+        // Временный текст внутри области графика (можно убрать при интеграции реального графика)
+        QVBoxLayout *layout_Graph = new QVBoxLayout(widget_GraphArea);
+        QLabel *label_GraphPlaceholder = new QLabel("Для построения графика начните обучение", widget_GraphArea);
+        label_GraphPlaceholder->setAlignment(Qt::AlignCenter);
+        layout_Graph->addWidget(label_GraphPlaceholder);
+
+        layout_NormalTrainPage->addWidget(widget_GraphArea);
+        widget_TrainStack->addWidget(widget_NormalTrainPage);
+
+        // ================================================
+        // ==== Страница "Обучение с кросс-валидацией" ====
+        // ================================================
+        widget_CrossValTrainPage = new QWidget;
+        layout_CrossValTrainPage = new QVBoxLayout(widget_CrossValTrainPage);
+        layout_CrossValTrainPage->setContentsMargins(0, 8, 0, 0);
+        layout_CrossValTrainPage->setSpacing(12);
+
+        widget_CrossValSettings = new QWidget;
+        layout_CrossValSettings = new QFormLayout(widget_CrossValSettings);
+        layout_CrossValSettings->setContentsMargins(0, 0, 0, 0);
+
+        label_KGroups = new QLabel("Количество групп (k):");
+        label_KGroups->setFont(font_TrainNav);
+        spin_KGroups = new QSpinBox;
+        spin_KGroups->setRange(10, 120);
+        spin_KGroups->setSingleStep(1);
+        spin_KGroups->setFont(font_TrainNav);
+        layout_CrossValSettings->addRow(label_KGroups, spin_KGroups);
+
+        layout_CrossValTrainPage->addWidget(widget_CrossValSettings);
+
+        btn_StartCrossValTrain = new QPushButton("Начать обучение");
+        btn_StartCrossValTrain->setMinimumHeight(40);
+        btn_StartCrossValTrain->setFont(font_TrainNav);
+        layout_CrossValTrainPage->addWidget(btn_StartCrossValTrain);
+
+        group_CrossValResults = new QGroupBox("Результат");
+        QFont font_Group = group_CrossValResults->font();
+        font_Group.setPointSize(12);
+        font_Group.setBold(true);
+        group_CrossValResults->setFont(font_Group);
+
+        layout_CrossValResults = new QVBoxLayout(group_CrossValResults);
+        layout_CrossValResults->setSpacing(8);
+
+        QFont font_Res = font_TrainNav;
+        font_Res.setPointSize(11);
+
+        label_ResAccuracy = new QLabel("Average accuracy: -");
+        label_ResPrecision = new QLabel("Precision: -");
+        label_ResRecall = new QLabel("Recall: -");
+        label_ResFMeasure = new QLabel("F-measure: -");
+        label_ResTime = new QLabel("Общее затраченное время: -");
+
+        for (auto lbl : {label_ResAccuracy, label_ResPrecision, label_ResRecall, label_ResFMeasure, label_ResTime}) {
+            lbl->setFont(font_Res);
+            layout_CrossValResults->addWidget(lbl);
+        }
+
+        layout_CrossValTrainPage->addWidget(group_CrossValResults);
+        layout_CrossValTrainPage->addStretch(); // Сдвигаем всё наверх, чтобы элементы не разъезжались
+
+        widget_TrainStack->addWidget(widget_CrossValTrainPage);
+
+        layout_TrainingPage->addWidget(widget_TrainStack);
+
+        // Активируем обычное обучение по умолчанию
+        btn_NormalTrain->setChecked(true);
 
         widget_ContentStack->addWidget(widget_TrainingPage);
     }
