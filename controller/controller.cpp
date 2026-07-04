@@ -108,6 +108,7 @@ namespace perc {
             std::vector<EmnistData> test_dataset(part);
             auto train_dataset = data;
             std::move(train_dataset.begin() + i * part, train_dataset.begin() + (i + 1) * part, test_dataset.begin());
+            train_dataset.erase(train_dataset.begin() + i * part, train_dataset.begin() + (i + 1) * part);
 
             perceptron_->Reset(); // Перцептрон по умолчанию
             perceptron_->Train(train_dataset); // Тренируем его на k-ой части датасета
@@ -125,7 +126,7 @@ namespace perc {
 
         for (auto i = 0; i < count_epoch; ++i) {
             auto res = perceptron_->Train(data);
-            error_values.push_back(res);
+            error_values[i] = res;
         }
 
         return error_values;
