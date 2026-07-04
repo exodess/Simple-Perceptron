@@ -15,7 +15,7 @@
 #include <vector>
 #include <cmath>
 
-namespace perc {
+// namespace perc {
 
     /**
      * @enum PerceptronType
@@ -130,6 +130,6 @@ namespace perc {
         int output_neurons_count_; ///< Количество выходных нейронов
     };
 
-}
+// }
 
 #endif

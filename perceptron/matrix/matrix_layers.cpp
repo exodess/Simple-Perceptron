@@ -1,6 +1,6 @@
 #include "../../include/perceptron/matrix_perceptron.h"
 
-namespace perc {
+// namespace perc {
 
 Matrix_Layer::Matrix_Layer() noexcept: Layer() {}
 
@@ -27,4 +27,4 @@ void Matrix_Layer::setRandomWeights() noexcept {
     }
 }
 
-}
+// }

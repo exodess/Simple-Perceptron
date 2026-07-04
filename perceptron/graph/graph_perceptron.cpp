@@ -1,6 +1,6 @@
 #include "../../include/perceptron/graph_perceptron.h"
 
-namespace perc {
+// namespace perc {
 
 Graph_perceptron::Graph_perceptron(int hidden_layers_count) noexcept: Perceptron(GRAPH_VIEW, hidden_layers_count), layers_count{hidden_layers_count + 2} {
     
@@ -213,4 +213,4 @@ std::vector<float> Graph_perceptron::GetWeights() noexcept {
     return weights;
 }
 
-}
+// }

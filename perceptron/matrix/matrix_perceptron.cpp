@@ -1,6 +1,6 @@
 #include "../../include/perceptron/matrix_perceptron.h"
 
-namespace perc {
+// namespace perc {
 
 Matrix_perceptron::Matrix_perceptron(int hidden_layer_sizes) noexcept: Perceptron(MATRIX_VIEW, hidden_layer_sizes), layers_count{hidden_layer_sizes + 2}
 {
@@ -178,4 +178,4 @@ std::vector<float> Matrix_perceptron::GetWeights() noexcept {
     return weights;
 }
 
-}
+// }

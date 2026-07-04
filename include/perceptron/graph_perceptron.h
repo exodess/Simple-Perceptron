@@ -9,7 +9,7 @@
  * @author Tarasova Alina
  */
 
-namespace perc {
+// namespace perc {
 
 /**
  * @class Graph_Neuron
@@ -126,6 +126,6 @@ private:
 
 };
 
-}
+// }
 
 #endif

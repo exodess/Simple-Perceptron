@@ -9,7 +9,7 @@
  * @author Tarasova Alina
  */
 
-namespace perc {
+// namespace perc {
 
 /**
  * @class Matrix_Neuron
@@ -113,6 +113,6 @@ private:
     float learning_rate_{0.1}; ///< Шаг обучения
 };
 
-}
+// }
 
 #endif
