@@ -7,8 +7,8 @@
  * @author Tarasova Alina
  */
 
-#include "tools/tools.h"
-#include "data/data.h"
+#include "../tools/tools.h"
+#include "../data/data.h"
 #include <memory>
 #include <random>
 #include <algorithm>
@@ -72,7 +72,7 @@ namespace perc {
          * @param data Массив выборок, где каждый элемент содержит данные о конкретной картинке
          * @return Контрольное значение ошибки после обучения
          */
-        virtual float Train(const std::vector<EmnistData>& data) noexcept = 0;
+        virtual float Train(  const std::vector<EmnistData>& data) noexcept = 0;
 
         /**
          * @brief Метод, загружающий веса в перцептрон.

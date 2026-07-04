@@ -1,4 +1,4 @@
-#include "perceptron/graph_perceptron.h"
+#include "../../include/perceptron/graph_perceptron.h"
 
 namespace perc {
 

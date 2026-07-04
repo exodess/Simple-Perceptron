@@ -1,4 +1,5 @@
-#include "perceptron/matrix_perceptron.h"
+#include "../../include/perceptron/matrix_perceptron.h"
+#include <iostream>
 
 namespace perc {
 
@@ -16,6 +17,9 @@ Matrix_perceptron::Matrix_perceptron(int hidden_layer_sizes) noexcept: Perceptro
     }
 
     layers_[0] = Matrix_Layer{INPUT_SIZE, temp_neuron_count_};
+
+    for (auto& layer : layers_)
+        layer.setRandomWeights();
 }
 
 void Matrix_perceptron::Reset() noexcept {
@@ -141,7 +145,7 @@ float Matrix_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
     for (auto& input : data) {
         float y_training[OUTPUT_SIZE]{};
         
-        y_training[input.index()] = 1;
+        y_training[input.index() - 1] = 1;
 
         setDataInput(input.data());
         sumFunc();
@@ -150,6 +154,47 @@ float Matrix_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
 
     return epoch_loss;
 }
+
+// float Matrix_perceptron::Train( std::vector<EmnistData>data) noexcept {
+
+//     float epoch_loss{};
+
+//     std::random_device rd;
+//     std::mt19937 g(rd());
+
+//     std::shuffle(data.begin(), data.end(), g);
+
+//     for (int i = 0; i < 5; ++i) {
+//         int study_accuracy{};
+
+//         for (auto& input : data) {
+//             float y_training[OUTPUT_SIZE]{};
+            
+//             y_training[input.index() - 1] = 1;
+
+//             setDataInput(input.data());
+//             sumFunc();
+//             epoch_loss += backPropagation(y_training);
+
+//             if (Verify(input.data()) == input.index() - 1)
+//                 ++study_accuracy;
+//         }
+//         std::cout << "study accuracy is " << study_accuracy;
+//     }
+
+//     int accuracy{};
+
+//     std::shuffle(data.begin(), data.end(), g);
+
+//     for (auto& x : data) {
+//         if (Verify(x.data()) == x.index() - 1)
+//             accuracy++;
+//     }
+
+//     std::cout << "accuracy is " << accuracy;
+
+//     return epoch_loss;
+// }
 
 void Matrix_perceptron::LoadWeights(const std::vector<float>& data) noexcept {
     std::vector<float> weights = data;

@@ -1,4 +1,4 @@
-#include "perceptron/graph_perceptron.h"
+#include "../../include/perceptron/graph_perceptron.h"
 
 namespace perc {
 
@@ -166,7 +166,7 @@ int Graph_perceptron::Verify(const std::vector<float>& image) noexcept  {
     return best_index_;
 }
 
-float Graph_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
+float Graph_perceptron::Train(  const std::vector<EmnistData>& data) noexcept {
 
     float epoch_loss{};
 
@@ -174,7 +174,7 @@ float Graph_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
         
         float y_training[OUTPUT_SIZE]{};
 
-        y_training[input.index()] = 1;
+        y_training[input.index() - 1] = 1;
 
         sumFunc(input.data());
         epoch_loss += backPropagation(y_training);

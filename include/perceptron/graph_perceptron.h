@@ -74,7 +74,7 @@ public:
 
     int Verify(const std::vector<float>& image) noexcept override;
 
-    float Train(const std::vector<EmnistData>& data) noexcept override;
+    float Train(  const std::vector<EmnistData>& data) noexcept override;
 
     void LoadWeights(const std::vector<float>& data) noexcept override;
 

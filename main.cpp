@@ -5,6 +5,9 @@
 #include "include/perceptron/matrix_perceptron.h"
 #include <iostream>
 #include <memory>
+#include <random>
+#include <ranges>
+#include <algorithm>
 
 
 
@@ -39,19 +42,31 @@ int main() {
                 else if (pixel < 0.5f && pixel >= 0.3f) symbol = '*';
                 else if (pixel < 0.3f && pixel >= 0.0f) symbol = '#';
 
-                // std::cout << symbol << symbol;
+                // std::cout << pixel << " ";
             }
             // std::cout << std::endl;
         }
 
-        std::unique_ptr<perc::Perceptron> perceptron = create(perc::GRAPH_VIEW, 2);
-        // dataReader.Read("data.txt");
-        // perceptron->loadWeights(dataReader.Read("data.txt"));
-        for (int i = 0; i < 15; ++i) {
+        std::unique_ptr<perc::Perceptron> perceptron = create(perc::MATRIX_VIEW, 2);
+
+        std::random_device rd;
+        std::mt19937 g(rd());
+
+        std::shuffle(res.begin(), res.end(), g);
+
+        for (int i = 0; i < 5; ++i) {
             perceptron->Train(res);
-            std::cout << "~~~~~~\n";
         }
-        // dataReader.saveData("data.txt", perceptron->saveWeights());
+
+        int accuracy{};
+        std::shuffle(res.begin(), res.end(), g);
+
+        for (auto& x : res) {
+            if (perceptron->Verify(x.data()) == x.index() - 1)
+                accuracy++;
+        }
+
+        std::cout << "accuracy is " << accuracy;
 
     } catch (const std::exception& e) {
         std::cout << "Не удалось обработать изображение!\n";

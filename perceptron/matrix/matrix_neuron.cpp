@@ -1,4 +1,4 @@
-#include "perceptron/matrix_perceptron.h"
+#include "../../include/perceptron/matrix_perceptron.h"
 
 namespace perc {
 
