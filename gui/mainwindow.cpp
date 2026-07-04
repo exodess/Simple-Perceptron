@@ -141,6 +141,7 @@ namespace gui {
 
     void MainWindow::on_spin_CountEpochs_valueChanged() noexcept {
         count_epochs_ = ui_->spin_EpochsGroups->value();
+        ui_->axisX_Training->setRange(0, count_epochs_ - 1);
     }
 
     void MainWindow::on_btn_LoadTrainSample_clicked() noexcept {

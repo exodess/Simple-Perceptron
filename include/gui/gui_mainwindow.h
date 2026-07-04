@@ -455,15 +455,16 @@ public:
 
         // Настройка оси X (по умолчанию от 0 до 10 эпох)
         axisX_Training = new QValueAxis();
-        axisX_Training->setTitleText("Эпохи / Итерации");
+        axisX_Training->setTitleText("Эпохи");
         axisX_Training->setLabelFormat("%d");
-        axisX_Training->setRange(0, 10);
+        axisX_Training->setRange(0, DEFAULT_COUNT_EPOCHS - 1);
         chart_Training->addAxis(axisX_Training, Qt::AlignBottom);
         series_Training->attachAxis(axisX_Training);
 
         // Настройка оси Y (по умолчанию от 0.0 до 1.0)
         axisY_Training = new QValueAxis();
-        axisY_Training->setTitleText("Значение целевой метрики");
+        axisY_Training->setTitleText("Значение контрольной ошибки");
+        axisY_Training->setLabelFormat("%f");
         axisY_Training->setRange(0.0, 1.0);
         chart_Training->addAxis(axisY_Training, Qt::AlignLeft);
         series_Training->attachAxis(axisY_Training);
@@ -472,7 +473,6 @@ public:
         chartView_Training = new QChartView(chart_Training);
         chartView_Training->setRenderHint(QPainter::Antialiasing);
         chartView_Training->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        chartView_Training->setVisible(false);
 
         // График сразу добавляется в компоновку страницы и виден по умолчанию
         layout_NormalTrainPage->addWidget(chartView_Training);
