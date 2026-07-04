@@ -9,7 +9,7 @@
  * @author Tarasova Alina
  */
 
-// namespace perc {
+namespace perc {
 
 /**
  * @class Graph_Neuron
@@ -83,17 +83,11 @@ public:
 private:
 
     /**
-     * @brief Метод, который устанавливает новые данные для перцептрона.
-     * @param std::vector<float> normalize_input вектор входных значений
-     */
-    void setDataInput(const std::vector<float>& normalize_input) noexcept;
-
-    /**
      * @brief Метод, который делает полный проход по слоям перцептрона,
      * суммирует выходы нейронов предыдущего слоя, умноженные на текущие веса.
      * На последнем R слое получаются 26 нейронов с выходным значением для каждого (outputs_).
      */
-    void sumFunc() noexcept;
+    void sumFunc(const std::vector<float>& normalize_input) noexcept;
 
     /**
      * @brief Метод, который делает полный проход по слоям в обратном направлении
@@ -115,17 +109,12 @@ private:
      */
     float setRandomWeight() noexcept;
 
-    PerceptronType Perceptron_type_{GRAPH_VIEW}; ///< Тип реализации
-
-    int layers_count; ///< Количество всех слоев перцептрона
-    std::vector<Graph_Layer> layers_; ///< вектор всех слоев нейрона, где layers_[0] - входной слой, layers_[layers_count - 1] - выходной
+    std::vector<Graph_Layer> layers_; ///< вектор всех слоев нейрона
     std::vector<Edge> all_edges_; ///< вектор граней между нейронами
 
     std::vector<float> normalize_input_; ///< вектор входных значений для одного изображения
-    float learning_rate_{0.1}; ///< Шаг обучения
-
 };
 
-// }
+}
 
 #endif

@@ -7,15 +7,15 @@
  * @author Tarasova Alina
  */
 
-#include "../tools/tools.h"
-#include "../data/data.h"
+#include "tools/tools.h"
+#include "data/data.h"
 #include <memory>
 #include <random>
 #include <algorithm>
 #include <vector>
 #include <cmath>
 
-// namespace perc {
+namespace perc {
 
     /**
      * @enum PerceptronType
@@ -130,6 +130,6 @@
         int output_neurons_count_; ///< Количество выходных нейронов
     };
 
-// }
+}
 
 #endif

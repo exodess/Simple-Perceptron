@@ -8,8 +8,7 @@
  * @brief В этом файле находятся класс перцептрона в матричной реализации и его составляющие (классы матричного слоя и матричного нейрона)
  * @author Tarasova Alina
  */
-
-// namespace perc {
+namespace perc {
 
 /**
  * @class Matrix_Neuron
@@ -103,16 +102,11 @@ private:
     void updateWeights() noexcept;
 
 private:
-
-    PerceptronType Perceptron_type_{MATRIX_VIEW}; ///< Тип реализации
-
-    int layers_count; ///< Количество всех слоев перцептрона
-    std::vector<Matrix_Layer> layers_; ///< вектор всех слоев нейрона, где layers_[0] - входной слой, layers_[layers_count - 1] - выходной
+    std::vector<Matrix_Layer> layers_; ///< вектор всех слоев нейрона
 
     std::vector<float> normalize_input_; ///< вектор входных значений для одного изображения
-    float learning_rate_{0.1}; ///< Шаг обучения
 };
 
-// }
+}
 
 #endif
