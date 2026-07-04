@@ -11,6 +11,10 @@
 #include <QFormLayout>
 #include <QComboBox>
 #include <QSpinBox>
+#include <QtCharts/QtCharts>
+#include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QValueAxis>
 
 #include "data/data.h"
 
@@ -83,6 +87,13 @@ public:
     // Подстраница "Обычное обучение"
     QWidget *widget_NormalTrainPage;
     QVBoxLayout *layout_NormalTrainPage;
+
+    // Компоненты постоянного графика обучения
+    QChartView *chartView_Training;
+    QChart *chart_Training;
+    QLineSeries *series_Training;
+    QValueAxis *axisX_Training;
+    QValueAxis *axisY_Training;
 
     QWidget *widget_CrossValSettings;
     QFormLayout *layout_CrossValSettings;
@@ -435,18 +446,36 @@ public:
         layout_RowStartBtn->addWidget(btn_StartNormalTrain);
         layout_NormalTrainPage->addWidget(rowStartBtnWidget);
 
-        // Контейнер (заглушка) под график, который будет растягиваться
-        widget_GraphArea = new QWidget;
-        widget_GraphArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        widget_GraphArea->setStyleSheet("background-color: #f5f5f5; border: 1px solid #ccc;");
+        // Строка 4: Создание и инициализация пустого графика по умолчанию
+        chart_Training = new QChart();
+        series_Training = new QLineSeries();
+        chart_Training->addSeries(series_Training);
+        chart_Training->setTitle("Динамика обучения перцептрона");
+        chart_Training->legend()->hide();
 
-        // Временный текст внутри области графика (можно убрать при интеграции реального графика)
-        QVBoxLayout *layout_Graph = new QVBoxLayout(widget_GraphArea);
-        QLabel *label_GraphPlaceholder = new QLabel("Для построения графика начните обучение", widget_GraphArea);
-        label_GraphPlaceholder->setAlignment(Qt::AlignCenter);
-        layout_Graph->addWidget(label_GraphPlaceholder);
+        // Настройка оси X (по умолчанию от 0 до 10 эпох)
+        axisX_Training = new QValueAxis();
+        axisX_Training->setTitleText("Эпохи / Итерации");
+        axisX_Training->setLabelFormat("%d");
+        axisX_Training->setRange(0, 10);
+        chart_Training->addAxis(axisX_Training, Qt::AlignBottom);
+        series_Training->attachAxis(axisX_Training);
 
-        layout_NormalTrainPage->addWidget(widget_GraphArea);
+        // Настройка оси Y (по умолчанию от 0.0 до 1.0)
+        axisY_Training = new QValueAxis();
+        axisY_Training->setTitleText("Значение целевой метрики");
+        axisY_Training->setRange(0.0, 1.0);
+        chart_Training->addAxis(axisY_Training, Qt::AlignLeft);
+        series_Training->attachAxis(axisY_Training);
+
+        // Создаем сам виджет отображения
+        chartView_Training = new QChartView(chart_Training);
+        chartView_Training->setRenderHint(QPainter::Antialiasing);
+        chartView_Training->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        chartView_Training->setVisible(false);
+
+        // График сразу добавляется в компоновку страницы и виден по умолчанию
+        layout_NormalTrainPage->addWidget(chartView_Training);
         widget_TrainStack->addWidget(widget_NormalTrainPage);
 
         // ================================================
