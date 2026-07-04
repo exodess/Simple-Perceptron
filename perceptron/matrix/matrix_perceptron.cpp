@@ -16,8 +16,6 @@ Matrix_perceptron::Matrix_perceptron(int hidden_layer_sizes) noexcept: Perceptro
     }
 
     layers_[0] = Matrix_Layer{INPUT_SIZE, temp_neuron_count_};
-
-    Reset();
 }
 
 void Matrix_perceptron::Reset() noexcept {
@@ -89,7 +87,7 @@ float Matrix_perceptron::backPropagation(float expected_[OUTPUT_SIZE]) noexcept 
     }
 
     //обработка слоев с конца
-    for (int i = layers_.size() - 2; i > -1; i--) {
+    for (int i = hidden_layers_count_; i > -1; i--) {
         Matrix_Layer& layer_current = layers_[i];
         Matrix_Layer& layer_next = layers_[i + 1];
         
@@ -122,7 +120,7 @@ int Matrix_perceptron::Verify(const std::vector<float>& image) noexcept  {
     setDataInput(image);
     sumFunc();
 
-    Matrix_Layer& last_layer_ = layers_.back();
+    Matrix_Layer& last_layer_ = layers_[layers_.size() - 1];
     int best_index_{};
     float max_output_{last_layer_.neurons_[0].output_};
 
@@ -143,7 +141,7 @@ float Matrix_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
     for (auto& input : data) {
         float y_training[OUTPUT_SIZE]{};
         
-        y_training[input.index()] = 1;
+        y_training[input.index() - 1] = 1;
 
         setDataInput(input.data());
         sumFunc();

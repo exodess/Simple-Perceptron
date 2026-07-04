@@ -1,6 +1,11 @@
 #ifndef CLASS_PERCEPTRON_H
 #define CLASS_PERCEPTRON_H
 
+/**
+ * @file perceptron.h
+ * @brief В этом файле находятся базовый класс перцептрона и его составляющие (классы слоя и нейрона)
+ * @author Tarasova Alina
+ */
 
 #include "tools/tools.h"
 #include "data/data.h"
@@ -9,12 +14,6 @@
 #include <algorithm>
 #include <vector>
 #include <cmath>
-
-/**
- * @file perceptron.h
- * @brief В этом файле находятся базовый класс перцептрона и его составляющие (классы слоя и нейрона)
- * @author Tarasova Alina
- */
 
 namespace perc {
 

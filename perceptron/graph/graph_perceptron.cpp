@@ -4,22 +4,21 @@ namespace perc {
 
 Graph_perceptron::Graph_perceptron(int hidden_layers_count) noexcept: Perceptron(GRAPH_VIEW, hidden_layers_count) {
     
-    layers_.resize(hidden_layers_count + 2);
-    
     std::vector<int> layer_sizes;
     layer_sizes.push_back(INPUT_SIZE);
     
-    int size = 64;
-    for (int i = 0; i < hidden_layers_count; ++i) {
-        size = size * 2;  // 128, 256, ...
-        layer_sizes.push_back(size);
+    int size = 32;
+
+    for (int i = hidden_layers_count - 1; i >= 0; --i) {
+        layer_sizes.insert(layer_sizes.begin() + 1, size * (1 << i));
     }
+
     layer_sizes.push_back(COUNT_LETTERS);
+    layers_.resize(layer_sizes.size());
     
     for (int i = 0; i < layers_.size(); ++i) {
-        int prev_size = (i == 0) ? 0 : layer_sizes[i-1];
-        int curr_size = layer_sizes[i];
-        layers_[i] = Graph_Layer{prev_size, curr_size};
+        int prev_size = (i == 0) ? 0 : layer_sizes[i - 1];
+        layers_[i] = Graph_Layer{prev_size, layer_sizes[i]};
     }
 
     int total_edges = 0;
@@ -30,18 +29,11 @@ Graph_perceptron::Graph_perceptron(int hidden_layers_count) noexcept: Perceptron
     for (int i = 0; i < layers_.size() - 1; ++i) {
         Graph_Layer& layer = layers_[i];
         Graph_Layer& next_layer = layers_[i + 1];
-        int prev_size = layer.neurons_.size();
         
         for (auto& neuron : layer.neurons_) {
             neuron.bias_ = 0.0;
-        }
-        
-        for (auto& next_neuron : next_layer.neurons_) {
-            next_neuron.bias_ = 0.0;
-        }
-        
-        for (auto& neuron : layer.neurons_) {
             for (auto& next_neuron : next_layer.neurons_) {
+                next_neuron.bias_ = 0.0;
                 float weight = setRandomWeight();
                 
                 all_edges_.push_back(Edge{&neuron, &next_neuron, weight});
@@ -51,12 +43,6 @@ Graph_perceptron::Graph_perceptron(int hidden_layers_count) noexcept: Perceptron
             }
         }
     }
-
-    Reset();
-}
-
-void Graph_perceptron::setDataInput(const std::vector<float>& normalize_input) noexcept {
-    normalize_input_ = normalize_input;
 }
 
 float Graph_perceptron::setRandomWeight() noexcept {
@@ -88,15 +74,15 @@ void Graph_perceptron::Reset() noexcept {
     }
 }
 
-void Graph_perceptron::sumFunc() noexcept {
+void Graph_perceptron::sumFunc(const std::vector<float>& normalize_input) noexcept {
     int i{};
+
     for (auto& neuron : layers_[0].neurons_)
-        neuron.output_ = normalize_input_[i++];
+        neuron.output_ = normalize_input[i++];
 
     for (int l = 1; l < layers_.size(); ++l) {
         Graph_Layer& layer = layers_[l];
 
-        // #pragma omp parallel for
         for (int i = 0; i < layer.neurons_.size(); ++i) {
             Graph_Neuron& neuron = layer.neurons_[i];
             float sum = neuron.bias_;
@@ -126,7 +112,6 @@ float Graph_perceptron::backPropagation(float expected_[OUTPUT_SIZE]) noexcept {
     Graph_Layer& layer = layers_.back();
 
     //обработка выходного слоя
-    // #pragma omp parallel for
     for (int i = 0; i < layer.neurons_.size(); ++i) {
         Graph_Neuron& neuron_ = layer.neurons_[i];
         float o = neuron_.output_;
@@ -135,7 +120,7 @@ float Graph_perceptron::backPropagation(float expected_[OUTPUT_SIZE]) noexcept {
     }
 
     //обработка слоев с конца
-    for (int i = layers_.size() - 2; i > -1; i--) {
+    for (int i = hidden_layers_count_; i > -1; i--) {
         Graph_Layer& layer_current = layers_[i];
         Graph_Layer& layer_next = layers_[i + 1];
         
@@ -165,10 +150,9 @@ float Graph_perceptron::backPropagation(float expected_[OUTPUT_SIZE]) noexcept {
 }
 
 int Graph_perceptron::Verify(const std::vector<float>& image) noexcept  {
-    setDataInput(image);
-    sumFunc();
+    sumFunc(image);
 
-    Graph_Layer& last_layer_ = layers_.back();
+    Graph_Layer& last_layer_ = layers_[layers_.size() - 1];
     int best_index_{};
     float max_output_{last_layer_.neurons_[0].output_};
 
@@ -190,11 +174,9 @@ float Graph_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
         
         float y_training[OUTPUT_SIZE]{};
 
-        y_training[input.index()] = 1;
+        y_training[input.index() - 1] = 1;
 
-        setDataInput(input.data());
-
-        sumFunc();
+        sumFunc(input.data());
         epoch_loss += backPropagation(y_training);
     }
 

@@ -4,7 +4,7 @@
 #include "perceptron.h"
 
 /**
- * @file matrix_perceptron.h
+ * @file graph_perceptron.h
  * @brief В этом файле находятся класс перцептрона в графовой реализации и его составляющие (классы графового слоя и графового нейрона)
  * @author Tarasova Alina
  */
@@ -83,17 +83,11 @@ public:
 private:
 
     /**
-     * @brief Метод, который устанавливает новые данные для перцептрона.
-     * @param std::vector<float> normalize_input вектор входных значений
-     */
-    void setDataInput(const std::vector<float>& normalize_input) noexcept;
-
-    /**
      * @brief Метод, который делает полный проход по слоям перцептрона,
      * суммирует выходы нейронов предыдущего слоя, умноженные на текущие веса.
      * На последнем R слое получаются 26 нейронов с выходным значением для каждого (outputs_).
      */
-    void sumFunc() noexcept;
+    void sumFunc(const std::vector<float>& normalize_input) noexcept;
 
     /**
      * @brief Метод, который делает полный проход по слоям в обратном направлении
@@ -115,7 +109,7 @@ private:
      */
     float setRandomWeight() noexcept;
 
-    std::vector<Graph_Layer> layers_; ///< вектор всех слоев нейрона, где layers_[0] - входной слой, layers_[layers_count - 1] - выходной
+    std::vector<Graph_Layer> layers_; ///< вектор всех слоев нейрона
     std::vector<Edge> all_edges_; ///< вектор граней между нейронами
 
     std::vector<float> normalize_input_; ///< вектор входных значений для одного изображения
