@@ -10,7 +10,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 # смотрим, чтобы были установлены необходимые пакеты
-find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets Charts)
 
 # включение заголовочных файлов
 include_directories(include)
@@ -33,4 +33,5 @@ target_link_libraries(Program PRIVATE
         controller
         Qt6::Widgets
         Qt6::OpenGLWidgets
+        Qt6::Charts
 )
