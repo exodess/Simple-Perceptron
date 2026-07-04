@@ -27,10 +27,11 @@ namespace gui {
         // Соединяем все сигналы
 
         connect(ui_->group_NavigationButtons, &QButtonGroup::idClicked, this, &MainWindow::on_btn_NavigationButton_clicked);
-        connect(ui_->btn_LoadSample, &QPushButton::clicked, this, &MainWindow::on_btn_LoadTestSample_clicked);
 
-        connect(ui_->slider_Sample, &QSlider::valueChanged, this, &MainWindow::on_slider_Sample_valueChanged);
-        connect(ui_->btn_StartSample, &QPushButton::clicked, this, &MainWindow::on_btn_StartTesting_clicked);
+        connect(ui_->btn_LoadTestSample, &QPushButton::clicked, this, &MainWindow::on_btn_LoadTestSample_clicked);
+        connect(ui_->slider_TestSample, &QSlider::valueChanged, this, &MainWindow::on_slider_Sample_valueChanged);
+        connect(ui_->btn_StartTesting, &QPushButton::clicked, this, &MainWindow::on_btn_StartTesting_clicked);
+        connect(ui_->btn_LoadImage, &QPushButton::clicked, this, &MainWindow::on_btn_LoadImage_clicked);
 
         connect(ui_->group_TrainNav, &QButtonGroup::idClicked, this, &MainWindow::on_btn_SubNavigationButton_clicked);
         connect(ui_->spin_EpochsGroups, &QSpinBox::valueChanged, this, &MainWindow::on_spin_CountEpochs_valueChanged);
@@ -60,12 +61,14 @@ namespace gui {
             current_test_sample_ = fileName;
             controller_->open(fileName.toStdString());
 
-            ui_->slider_Sample->setVisible(true);
+            ui_->slider_TestSample->setVisible(true);
+            ui_->label_TestSampleStatus->setVisible(true);
+            ui_->label_TestSampleStatus->setText("Загружен файл " + QFileInfo(fileName).fileName());
         }
     }
 
     void MainWindow::on_slider_Sample_valueChanged() noexcept {
-        part_sample_ = static_cast<float>(ui_->slider_Sample->value()) / 100.0;
+        part_sample_ = static_cast<float>(ui_->slider_TestSample->value()) / 100.0;
     }
 
     void MainWindow::on_btn_StartTesting_clicked() noexcept {
@@ -74,10 +77,29 @@ namespace gui {
 
             auto res = controller_->testing(part_sample_);
 
-            qDebug() << "Тестирование завершено: ";
-            qDebug() << "accuracy: " << res.accuracy();
-            qDebug() << "precision: " << res.precision();
             // Выводим на экран информацию из res
+            ui_->label_TestAccuracy->setText(QString("Average accuracy: %1").arg(res.accuracy()));
+            ui_->label_TestPrecision->setText(QString("Precision: %1").arg(res.precision()));
+            ui_->label_TestRecall->setText(QString("Recall: %1").arg(res.recall()));
+            ui_->label_TestFMeasure->setText(QString("F-measure: %1").arg(res.recall()));
+            ui_->label_TestTime->setText(QString("Time spent (sec): %1").arg(res.time() / 1000.0f));
+
+            qDebug() << "Тестирование завершено";
+        }
+    }
+
+    void MainWindow::on_btn_LoadImage_clicked() noexcept {
+        QString file_path = QFileDialog::getOpenFileName(
+            this, "Открыть изображение", QString(),
+            "Изображения (*.png *.jpg *.bmp)");
+
+        if (!file_path.isEmpty()) {
+            QPixmap pix(file_path);
+            if (!pix.isNull()) {
+                // Масштабируем строго до 28х28 согласно условию
+                ui_->label_ImagePreview->setPixmap(pix.scaled(28, 28, Qt::KeepAspectRatio, Qt::FastTransformation));
+                ui_->label_ImagePreview->setVisible(true);
+            }
         }
     }
 
@@ -106,9 +128,10 @@ namespace gui {
     }
 
     void MainWindow::on_btn_StartNormalTraining_clicked() noexcept {
+        qDebug() << "Начинается обучение перцептрона...";
+
         auto graphic_data = controller_->training(count_epochs_);
 
-        qDebug() << "Начинается обучение перцептрона...";
         // Построение графика
         qDebug() << "Обучение завершено";
     }
