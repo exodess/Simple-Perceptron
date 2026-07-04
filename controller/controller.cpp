@@ -66,7 +66,7 @@ namespace perc {
 
         if (data.size() > 0) {
             // Считаем долю правильных ответов
-            result.accuracy() = static_cast<float>(count_correct_res / data.size());
+            result.accuracy() = static_cast<float>(count_correct_res) / data.size();
 
             // Считаем среднюю долю правильных ответов по классам
             float sum_precisions = 0.0f;
