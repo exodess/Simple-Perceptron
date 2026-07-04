@@ -2,6 +2,7 @@
 #include "data/data.h"
 #include <QFileDialog>
 #include <QMainWindow>
+#include <algorithm> // Для std::minmax_element
 
 namespace gui {
     MainWindow::MainWindow(QWidget *parent)
@@ -44,6 +45,35 @@ namespace gui {
         connect(ui_->spin_HiddenLayers, &QSpinBox::valueChanged, this, &MainWindow::on_spin_CountHiddenLayers_valueChanged);
         connect(ui_->btn_SaveWeights, &QPushButton::clicked, this, &MainWindow::on_btn_SaveWeights_clicked);
         connect(ui_->btn_LoadWeights, &QPushButton::clicked, this, &MainWindow::on_btn_LoadWeights_clicked);
+    }
+
+    void MainWindow::drawTrainGraph(const std::vector<float>& graph) noexcept {
+        if (graph.empty()) return;
+
+        ui_->chartView_Training->setVisible(true);
+
+        // Формируем список точек для быстрой замены данных
+        QList<QPointF> points;
+        points.reserve(graph.size());
+        for (size_t i = 0; i < graph.size(); ++i) {
+            points.append(QPointF(static_cast<double>(i), graph[i]));
+        }
+
+        // Накладываем новые точки на уже существующий в UI график
+        ui_->series_Training->replace(points);
+
+        // Динамически пересчитываем границы осей под новые данные
+        ui_->axisX_Training->setRange(0, graph.size() - 1);
+
+        auto [min_it, max_it] = std::minmax_element(graph.begin(), graph.end());
+        float min_val = *min_it;
+        float max_val = *max_it;
+
+        // Добавляем 5% свободного пространства сверху и снизу для красоты
+        float offset = (max_val - min_val) * 0.05f;
+        if (offset == 0.0f) offset = 0.1f; // Защита от деления на 0 / одинаковых значений
+
+        ui_->axisY_Training->setRange(min_val - offset, max_val + offset);
     }
 
     void MainWindow::on_btn_NavigationButton_clicked(int index) noexcept {
@@ -135,6 +165,8 @@ namespace gui {
         auto graphic_data = controller_->training(count_epochs_);
 
         // Построение графика
+        drawTrainGraph(graphic_data);
+
         qDebug() << "Обучение завершено";
     }
 
@@ -148,7 +180,7 @@ namespace gui {
         auto res = controller_->crossValidation(k_);
 
         ui_->group_CrossValResults->setVisible(true);
-        ui_->label_ResAccuracy->setText(QString("Average accuracy: %1").arg(res.accuracy() * 100));
+        ui_->label_ResAccuracy->setText(QString("Average accuracy: %1").arg(res.accuracy()));
         ui_->label_ResPrecision->setText(QString("Precision: %1").arg(res.precision()));
         ui_->label_ResRecall->setText(QString("Recall: %1").arg(res.recall()));
         ui_->label_ResFMeasure->setText(QString("F-measure: %1").arg(res.recall()));

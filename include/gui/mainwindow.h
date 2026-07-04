@@ -71,6 +71,7 @@ namespace gui {
 
     private:
         void connectSignals() const noexcept; ///< Соединяет все слоты с сигналами в приложении
+        void drawTrainGraph(const std::vector<float>& graph) noexcept; ///< Рисует график изменения контрольного значения ошибки при обучении
 
         std::unique_ptr<GUI_MainWindow> ui_; ///< Управление пользовательским интерфейсом
         std::unique_ptr<perc::Controller> controller_; ///< Контроллер для управления всей внутренней логикой программы
