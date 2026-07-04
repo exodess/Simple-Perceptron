@@ -28,14 +28,15 @@ namespace gui {
          * @param index номер страницы справа: 0 - эксперимент, 1 - обучение, 2 - загрузить
          */
         void on_btn_NavigationButton_clicked(int index) noexcept;
-        void on_btn_LoadTestSample_clicked() noexcept; ///< Обработка нажатия на кнопку загрузки тестовой выборки
 
         // ==============================
         // === Страница "Эксперимент" ===
         // ==============================
 
+        void on_btn_LoadTestSample_clicked() noexcept; ///< Обработка нажатия на кнопку загрузки тестовой выборки
         void on_slider_Sample_valueChanged() noexcept; ///< Обработка ползунка слайдера
         void on_btn_StartTesting_clicked() noexcept; ///< Обработка нажатия на кнопку запуска эксперимента на текущей тестовой выборке
+        void on_btn_LoadImage_clicked() noexcept; ///< Обработка нажатия на кнопку загрузки BMP изображения
 
         // ==============================
         // ===== Страница "Обучение" ====
