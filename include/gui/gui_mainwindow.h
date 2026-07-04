@@ -36,15 +36,32 @@ public:
     // Содержимое страницы "Эксперимент"
     // =================================
     QWidget *widget_ExperimentalPage;
-    QLabel *label_ExperimentalPage;
-    QLayout *layout_ExperimentalPage;
+    QVBoxLayout *layout_ExperimentalPage;
 
-    QLabel *label_TitleLoad;
-    QWidget *widget_RowData;
-    QHBoxLayout *layout_Row;
-    QPushButton *btn_LoadSample; ///< Кнопка "Загрузить выборку"
-    QSlider *slider_Sample; ///< Ползунок (скрыт до загрузки)
-    QPushButton *btn_StartSample; ///< Кнопка "Начать"
+    // Область "Тестирование датасетом"
+    QGroupBox *group_DatasetTesting;
+    QVBoxLayout *layout_DatasetTesting;
+    QPushButton *btn_LoadTestSample; ///< Кнопка "Загрузить тестовую выборку"
+    QSlider *slider_TestSample; ///< Ползунок (скрыт до загрузки)
+    QLabel *label_TestSampleStatus; ///< Надпись "Загружен файл <имя файла>"
+
+    // Метрики в центре
+    QWidget *widget_TestMetricsCenter;
+    QVBoxLayout *layout_TestMetricsCenter;
+    QLabel *label_TestAccuracy;
+    QLabel *label_TestPrecision;
+    QLabel *label_TestRecall;
+    QLabel *label_TestFMeasure;
+    QLabel *label_TestTime;
+
+    QPushButton *btn_StartTesting; ///< Кнопка "Начать тестирование"
+
+    // Область "Загрузить"
+    QGroupBox *group_LoadSingle;
+    QHBoxLayout *layout_LoadSingleRoot;
+    QPushButton *btn_LoadImage; ///< Кнопка "Загрузить готовую картинку"
+    QLabel *label_ImagePreview; ///< QLabel для вывода картинки 28*28
+    QPushButton *btn_DrawLetter; ///< Кнопка "Нарисовать букву"
 
     // ==============================
     // Содержимое страницы "Обучение"
@@ -174,47 +191,77 @@ public:
         layout_ExperimentalPage = new QVBoxLayout(widget_ExperimentalPage);
 
         layout_ExperimentalPage->setContentsMargins(16, 16, 16, 16);
-        layout_ExperimentalPage->setSpacing(12);
+        layout_ExperimentalPage->setSpacing(16);
 
-        // Заголовок
-        label_TitleLoad = new QLabel("Загрузить тестовую выборку");
-        auto font_TitleLoad = label_TitleLoad->font();
-        font_TitleLoad.setPointSize(13);
-        font_TitleLoad.setBold(true);
-        label_TitleLoad->setFont(font_TitleLoad);
-        label_TitleLoad->setAlignment(Qt::AlignHCenter);
-        layout_ExperimentalPage->addWidget(label_TitleLoad);
+        QFont font_Group;
+        font_Group.setPointSize(12);
+        font_Group.setBold(true);
 
-        auto rowWidget = new QWidget;
-        auto rowLayout = new QHBoxLayout(rowWidget);
-        rowLayout->setContentsMargins(0, 0, 0, 0);
-        rowLayout->setSpacing(12);
+        QFont font_Normal;
+        font_Normal.setPointSize(11);
 
-        // Кнопка загрузить
-        btn_LoadSample = new QPushButton("Загрузить");
-        btn_LoadSample->setFixedWidth(100);
-        QFont font_loadSample = btn_LoadSample->font();
-        font_loadSample.setPointSize(13);
-        btn_LoadSample->setFont(font_loadSample);
-        rowLayout->addWidget(btn_LoadSample);
+        // ================================================================
+        // ============= ОБЛАСТЬ "Тестирование датасетом" =================
+        // ================================================================
+        group_DatasetTesting = new QGroupBox("Тестирование датасетом");
+        group_DatasetTesting->setFont(font_Group);
 
-        slider_Sample = new QSlider(Qt::Horizontal);
-        slider_Sample->setRange(0, 100);
-        slider_Sample->setValue(0);
-        slider_Sample->setVisible(false);   // скрыт до нажатия кнопки
-        rowLayout->addWidget(slider_Sample);
+        layout_DatasetTesting = new QVBoxLayout(group_DatasetTesting);
+        layout_DatasetTesting->setSpacing(12);
 
-        layout_ExperimentalPage->addWidget(rowWidget);
+        // Верхняя строка: Кнопка загрузки выборки и слайдер справа от нее
+        auto *rowTopDataset = new QWidget;
+        auto *layout_RowTopDataset = new QHBoxLayout(rowTopDataset);
+        layout_RowTopDataset->setContentsMargins(0, 0, 0, 0);
+        layout_RowTopDataset->setSpacing(12);
 
-        // Кнопка «Начать» (внизу справа)
-        auto *bottomRow = new QWidget;
-        auto *bottomLayout = new QHBoxLayout(bottomRow);
-        bottomLayout->setContentsMargins(0, 0, 0, 0);
-        bottomLayout->addStretch(); // прижимаем кнопку вправо
+        btn_LoadTestSample = new QPushButton("Загрузить тестовую выборку");
+        btn_LoadTestSample->setFont(font_Normal);
+        layout_RowTopDataset->addWidget(btn_LoadTestSample);
 
-        btn_StartSample = new QPushButton("Начать");
-        btn_StartSample->setFixedWidth(150);
-        btn_StartSample->setStyleSheet(
+        slider_TestSample = new QSlider(Qt::Horizontal);
+        slider_TestSample->setRange(0, 100);
+        slider_TestSample->setValue(100);
+        slider_TestSample->setVisible(false); // Скрыт до момента клика по кнопке
+        layout_RowTopDataset->addWidget(slider_TestSample);
+
+        layout_RowTopDataset->addStretch(); // Сдвигает элементы строки влево
+        layout_DatasetTesting->addWidget(rowTopDataset);
+
+        // Статус загруженного файла (появляется ниже кнопки)
+        label_TestSampleStatus = new QLabel("");
+        label_TestSampleStatus->setVisible(false);
+        layout_DatasetTesting->addWidget(label_TestSampleStatus);
+
+        // Информационный столбик в центре области
+        widget_TestMetricsCenter = new QWidget;
+        layout_TestMetricsCenter = new QVBoxLayout(widget_TestMetricsCenter);
+        layout_TestMetricsCenter->setContentsMargins(0, 0, 0, 0);
+        layout_TestMetricsCenter->setSpacing(6);
+        layout_TestMetricsCenter->setAlignment(Qt::AlignCenter); // Выравнивание по центру контейнера
+
+        label_TestAccuracy = new QLabel("Average accuracy: -");
+        label_TestPrecision = new QLabel("Precision: -");
+        label_TestRecall = new QLabel("Recall: -");
+        label_TestFMeasure = new QLabel("F-measure: -");
+        label_TestTime = new QLabel("Time spent: -");
+
+        for (auto lbl : {label_TestAccuracy, label_TestPrecision, label_TestRecall, label_TestFMeasure, label_TestTime}) {
+            lbl->setFont(font_Normal);
+            lbl->setAlignment(Qt::AlignCenter);
+            layout_TestMetricsCenter->addWidget(lbl);
+        }
+        layout_DatasetTesting->addWidget(widget_TestMetricsCenter);
+
+        // Нижняя строка: Кнопка "Начать тестирование" (внизу справа)
+        auto *rowBottomDataset = new QWidget;
+        auto *layout_RowBottomDataset = new QHBoxLayout(rowBottomDataset);
+        layout_RowBottomDataset->setContentsMargins(0, 0, 0, 0);
+        layout_RowBottomDataset->addStretch(); // Сдвигает кнопку вправо
+
+        btn_StartTesting = new QPushButton("Начать тестирование");
+        btn_StartTesting->setFixedWidth(200);
+        btn_StartTesting->setStyleSheet(
             "QPushButton {"
             "  background-color: #4CAF50;"
             "  color: white;"
@@ -225,12 +272,59 @@ public:
             "QPushButton:hover  { background-color: #45A049; }"
             "QPushButton:pressed{ background-color: #388E3C; }"
         );
-        QFont font_StartSample = btn_StartSample->font();
-        font_StartSample.setPointSize(13);
-        btn_StartSample->setFont(font_StartSample);
-        bottomLayout->addWidget(btn_StartSample);
+        btn_StartTesting->setFont(font_Normal);
+        layout_RowBottomDataset->addWidget(btn_StartTesting);
+        layout_DatasetTesting->addWidget(rowBottomDataset);
 
-        layout_ExperimentalPage->addWidget(bottomRow);
+        layout_ExperimentalPage->addWidget(group_DatasetTesting);
+
+        // ========================================================
+        // ================= ОБЛАСТЬ "Загрузить" ==================
+        // ========================================================
+        group_LoadSingle = new QGroupBox("Загрузить");
+        group_LoadSingle->setFont(font_Group);
+        group_LoadSingle->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+        layout_LoadSingleRoot = new QHBoxLayout(group_LoadSingle);
+        layout_LoadSingleRoot->setContentsMargins(16, 16, 16, 16);
+        layout_LoadSingleRoot->setSpacing(24);
+
+        // Левая колонка: кнопка для картинки и превью под ней
+        auto *widget_LeftColumn = new QWidget;
+        auto *layout_LeftColumn = new QVBoxLayout(widget_LeftColumn);
+        layout_LeftColumn->setContentsMargins(0, 0, 0, 0);
+        layout_LeftColumn->setSpacing(12);
+        layout_LeftColumn->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+
+        btn_LoadImage = new QPushButton("Загрузить готовую картинку");
+        btn_LoadImage->setFont(font_Normal);
+        btn_LoadImage->setFixedWidth(260);
+        layout_LeftColumn->addWidget(btn_LoadImage);
+
+        label_ImagePreview = new QLabel;
+        label_ImagePreview->setFixedSize(28, 28);
+        label_ImagePreview->setStyleSheet("background-color: #ffffff; border: 1px solid #ccc;");
+        label_ImagePreview->setVisible(false); // Скрыта до момента загрузки изображения
+        layout_LeftColumn->addWidget(label_ImagePreview);
+
+        layout_LoadSingleRoot->addWidget(widget_LeftColumn);
+
+        // Правая колонка: кнопка "Нарисовать букву"
+        auto *widget_RightColumn = new QWidget;
+        auto *layout_RightColumn = new QVBoxLayout(widget_RightColumn);
+        layout_RightColumn->setContentsMargins(0, 0, 0, 0);
+        layout_RightColumn->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+
+        btn_DrawLetter = new QPushButton("Нарисовать букву");
+        btn_DrawLetter->setFont(font_Normal);
+        btn_DrawLetter->setFixedWidth(180);
+        layout_RightColumn->addWidget(btn_DrawLetter);
+
+        layout_LoadSingleRoot->addWidget(widget_RightColumn);
+        layout_LoadSingleRoot->addStretch(); // Сдвигает обе колонки к левому краю области
+
+        layout_ExperimentalPage->addWidget(group_LoadSingle);
+
         widget_ContentStack->addWidget(widget_ExperimentalPage);
     }
 
