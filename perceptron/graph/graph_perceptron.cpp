@@ -174,7 +174,7 @@ float Graph_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
         
         float y_training[OUTPUT_SIZE]{};
 
-        y_training[input.index() - 1] = 1;
+        y_training[input.index()] = 1;
 
         sumFunc(input.data());
         epoch_loss += backPropagation(y_training);
