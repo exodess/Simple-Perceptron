@@ -180,7 +180,7 @@ float Graph_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
         epoch_loss += backPropagation(y_training);
     }
 
-    return epoch_loss;
+    return epoch_loss / data.size();
 }
 
 void Graph_perceptron::LoadWeights(const std::vector<float>& data) noexcept {

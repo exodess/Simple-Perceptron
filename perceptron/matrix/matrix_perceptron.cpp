@@ -16,6 +16,9 @@ Matrix_perceptron::Matrix_perceptron(int hidden_layer_sizes) noexcept: Perceptro
     }
 
     layers_[0] = Matrix_Layer{INPUT_SIZE, temp_neuron_count_};
+
+    for (auto& layer : layers_)
+        layer.setRandomWeights();
 }
 
 void Matrix_perceptron::Reset() noexcept {
@@ -148,7 +151,7 @@ float Matrix_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
         epoch_loss += backPropagation(y_training);
     }
 
-    return epoch_loss;
+    return epoch_loss / data.size();
 }
 
 void Matrix_perceptron::LoadWeights(const std::vector<float>& data) noexcept {
