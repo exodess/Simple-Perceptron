@@ -105,7 +105,7 @@ namespace perc {
          * 3. Транспонировать матрицу ("изображение" повернуто на бок)
          * @return Данные, пригодные к загрузке в перцептрон
          */
-        std::vector<float> Normalize(const std::vector<char>& raw_data) noexcept;
+        std::vector<float> Normalize(const std::vector<int>& raw_data) noexcept;
     };
 
 }
