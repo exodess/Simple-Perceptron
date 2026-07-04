@@ -16,6 +16,8 @@ Matrix_perceptron::Matrix_perceptron(int hidden_layer_sizes) noexcept: Perceptro
     }
 
     layers_[0] = Matrix_Layer{INPUT_SIZE, temp_neuron_count_};
+
+    Reset();
 }
 
 void Matrix_perceptron::Reset() noexcept {
@@ -141,7 +143,7 @@ float Matrix_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
     for (auto& input : data) {
         float y_training[OUTPUT_SIZE]{};
         
-        y_training[input.index() - 1] = 1;
+        y_training[input.index()] = 1;
 
         setDataInput(input.data());
         sumFunc();
