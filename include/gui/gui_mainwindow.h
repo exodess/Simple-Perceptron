@@ -251,6 +251,7 @@ public:
             lbl->setAlignment(Qt::AlignCenter);
             layout_TestMetricsCenter->addWidget(lbl);
         }
+        widget_TestMetricsCenter->setVisible(false);
         layout_DatasetTesting->addWidget(widget_TestMetricsCenter);
 
         // Нижняя строка: Кнопка "Начать тестирование" (внизу справа)
@@ -481,6 +482,8 @@ public:
         font_Group.setPointSize(12);
         font_Group.setBold(true);
         group_CrossValResults->setFont(font_Group);
+        group_CrossValResults->setAlignment(Qt::AlignCenter);
+        group_CrossValResults->setVisible(false);
 
         layout_CrossValResults = new QVBoxLayout(group_CrossValResults);
         layout_CrossValResults->setSpacing(8);

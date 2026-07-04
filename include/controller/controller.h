@@ -20,7 +20,7 @@ namespace perc {
      */
     struct SuccessRate {
         SuccessRate() noexcept :
-        average_accuracy_(-1.0f), precision_(-1.0f), recall_(-1.0f), f_measure_(-1.0f), time_spent_(0.0f) {}
+        average_accuracy_(0.0f), precision_(0.0f), recall_(0.0f), f_measure_(0.0f), time_spent_(0.0f) {}
 
         SuccessRate(float acc, float prec, float recall, float measure, float time) noexcept :
         average_accuracy_(acc), precision_(prec), recall_(recall), f_measure_(measure), time_spent_(time) {}

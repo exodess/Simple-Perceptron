@@ -73,9 +73,10 @@ namespace gui {
 
     void MainWindow::on_btn_StartTesting_clicked() noexcept {
         if (!current_test_sample_.isEmpty()) {
-            qDebug() << "Начало прогона тестовой выборки\n";
+            qDebug() << "Начало прогона тестовой выборки";
 
             auto res = controller_->testing(part_sample_);
+
 
             // Выводим на экран информацию из res
             ui_->label_TestAccuracy->setText(QString("Average accuracy: %1").arg(res.accuracy()));
@@ -83,6 +84,7 @@ namespace gui {
             ui_->label_TestRecall->setText(QString("Recall: %1").arg(res.recall()));
             ui_->label_TestFMeasure->setText(QString("F-measure: %1").arg(res.recall()));
             ui_->label_TestTime->setText(QString("Time spent (sec): %1").arg(res.time() / 1000.0f));
+            ui_->widget_TestMetricsCenter->setVisible(true);
 
             qDebug() << "Тестирование завершено";
         }
@@ -141,9 +143,18 @@ namespace gui {
     }
 
     void MainWindow::on_btn_StartCrossValidationTraining_clicked() noexcept {
+        qDebug() << "Начало обучения методом кросс-валидации";
+
         auto res = controller_->crossValidation(k_);
 
-        // Вывод метрик из res на экран
+        ui_->group_CrossValResults->setVisible(true);
+        ui_->label_ResAccuracy->setText(QString("Average accuracy: %1").arg(res.accuracy() * 100));
+        ui_->label_ResPrecision->setText(QString("Precision: %1").arg(res.precision()));
+        ui_->label_ResRecall->setText(QString("Recall: %1").arg(res.recall()));
+        ui_->label_ResFMeasure->setText(QString("F-measure: %1").arg(res.recall()));
+        ui_->label_ResTime->setText(QString("Time spent (sec): %1").arg(res.time() / 1000.0f));
+
+        qDebug() << "Процесс кросс-валидации окончен";
     }
 
     void MainWindow::on_combo_PerceptronType_indexChanged(int index) noexcept {

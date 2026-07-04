@@ -51,6 +51,8 @@ Graph_perceptron::Graph_perceptron(int hidden_layers_count) noexcept: Perceptron
             }
         }
     }
+
+    Reset();
 }
 
 void Graph_perceptron::setDataInput(const std::vector<float>& normalize_input) noexcept {
