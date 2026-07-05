@@ -124,6 +124,10 @@ namespace perc {
         auto data = emnist_data_reader_->data();
         std::vector<float> error_values(count_epoch);
 
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::ranges::shuffle(data.begin(), data.end(), g);
+
         for (auto i = 0; i < count_epoch; ++i) {
             auto res = perceptron_->Train(data);
             error_values[i] = res;
