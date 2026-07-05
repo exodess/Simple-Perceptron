@@ -19,6 +19,7 @@ file(GLOB gui_files "gui/*.cpp" "include/gui/*.h")
 file(GLOB matrix_perceptron_src_files "perceptron/matrix/*.cpp")
 file(GLOB graph_perceptron_src_files "perceptron/graph/*.cpp")
 file(GLOB controller_src_files "controller/*.cpp" )
+file(GLOB gtest_src_files "tests/*.cpp")
 
 # Статическая библиотека внутренней логики
 add_library(controller STATIC
@@ -34,3 +35,22 @@ target_link_libraries(Program PRIVATE
         Qt6::Widgets
         Qt6::Charts
 )
+
+# ============================
+# === Тестирование с GTest ===
+# ============================
+
+find_package(GTest REQUIRED)
+include(GoogleTest)
+
+enable_testing() # чтобы можно было запускать через ctest
+
+add_executable(TestPerceptron ${gtest_src_files})
+
+target_include_directories(TestPerceptron PUBLIC)
+target_link_libraries(TestPerceptron
+        controller
+        GTest::gtest_main
+)
+
+gtest_discover_tests(TestPerceptron)
