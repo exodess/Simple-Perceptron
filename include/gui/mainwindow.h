@@ -1,6 +1,13 @@
 #ifndef PERCEPTRON_MAIN_WINDOW_H
 #define PERCEPTRON_MAIN_WINDOW_H
 
+/**
+ * @file mainwindow.h
+ * @brief В этом файле хранится описание класса MainWindow,
+ * отвечающий за отображение окна приложения и взаимодействия с ним пользователя
+ * @author Georgiy Kovalev
+ */
+
 #include "gui_mainwindow.h"
 #include "controller/controller.h"
 #include <QMainWindow>
@@ -46,7 +53,7 @@ namespace gui {
 
         void on_spin_CountEpochs_valueChanged() noexcept; ///< Обработка спинбокса для задания количества эпох обучения
 
-        void on_btn_LoadTrainSample_clicked() noexcept;
+        void on_btn_LoadTrainSample_clicked() noexcept; ///< Обработка нажатия кнопки "Загрузить выборку" на странице "Обучение"
         /**
          * @brief Обработка нажатия кнопки "Начать обучение"
          * на странице "Обучение" - "Обычное обучение"
@@ -76,6 +83,7 @@ namespace gui {
         std::unique_ptr<GUI_MainWindow> ui_; ///< Управление пользовательским интерфейсом
         std::unique_ptr<perc::Controller> controller_; ///< Контроллер для управления всей внутренней логикой программы
         QString current_test_sample_; ///< Название файла, откуда загружается тестовая выборка
+        QString current_train_sample_; ///< Название файла, откуда загружается тренировочная выборка
         float part_sample_; ///< Какая часть тестовой выборки будет загружена
         int k_; ///< Значение k для обучения методом кросс-валидации
         int count_epochs_; ///< Количество эпох обучения перцептрона

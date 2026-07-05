@@ -20,9 +20,10 @@
 #define MIN_K 1
 #define DEFAULT_K 5 ///< Значение k для кросс-валидации
 #define MAX_K 20
-#define MIN_COUNT_EPOCHS 10
+#define MIN_COUNT_EPOCHS 2
 #define DEFAULT_COUNT_EPOCHS 30
 #define MAX_COUNT_EPOCHS 120
+#define DEFAULT_PART_VALUE 1.0f
 #define MIN_HIDDEN 2 ///< Минимальное количество скрытых слоев перцептрона
 #define MAX_HIDDEN 5 ///< Максимальное количество скрытых слоев перцептрона
 #define MAX_NEURONS 64
@@ -30,9 +31,9 @@
 
 // Настройки GUI
 #define DEFAULT_WINDOW_WIDTH 900
-#define DEFAULT_WINDOW_HEIGHT 600
+#define DEFAULT_WINDOW_HEIGHT 640
 #define MINIMUM_WINDOW_WIDTH 600
-#define MINIMUM_WINDOW_HEIGHT 600
+#define MINIMUM_WINDOW_HEIGHT 500
 
 #define WEIGHTS_SAVE_FILE_EXTENSION ".weights"
 
