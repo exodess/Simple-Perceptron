@@ -206,7 +206,9 @@ std::vector<float> Graph_perceptron::GetWeights() noexcept {
         for (auto& neuron : layers_[l].neurons_) {
             weights.push_back(neuron.bias_);
 
-            weights.insert(weights.end(), neuron.inputs_.begin(), neuron.inputs_.end());
+            for (auto& input_edge : neuron.inputs_) {
+                weights.push_back(input_edge->weight_);
+            }
         }
     }
 
