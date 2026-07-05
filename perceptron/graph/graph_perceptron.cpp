@@ -98,14 +98,17 @@ void Graph_perceptron::updateWeights() noexcept {
     for (int l = 1; l < layers_.size(); ++l) {
         Graph_Layer& layer = layers_[l];
 
-        for (int i = 0; i < (int)layer.neurons_.size(); ++i) {
+        for (int i = 0; i < layer.neurons_.size(); ++i) {
             auto& neuron = layer.neurons_[i];
-                for (auto& input : neuron.inputs_) {
-                    input->weight_ -=  LEARNING_RATE * neuron.deltas_ * input->from_->output_;
-                }
+
+            neuron.bias_ -= LEARNING_RATE * neuron.deltas_;
+            for (auto& input : neuron.inputs_) {
+                input->weight_ -= LEARNING_RATE * neuron.deltas_ * input->from_->output_;
+            }
         }
     }
 }
+
 
 float Graph_perceptron::backPropagation(float expected_[OUTPUT_SIZE]) noexcept {
 
