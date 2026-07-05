@@ -20,8 +20,6 @@ class Matrix_Neuron : public Neuron {
 public:
     Matrix_Neuron() noexcept;
 
-    explicit Matrix_Neuron(int inputs_count) noexcept;
-
     std::vector<float> weights_;
 };
 

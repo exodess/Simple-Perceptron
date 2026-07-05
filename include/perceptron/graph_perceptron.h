@@ -25,9 +25,7 @@ class Graph_Neuron;
  */
 
 struct Edge {
-
-    Edge() noexcept;
-
+    
     explicit Edge(Graph_Neuron* from, Graph_Neuron* to, float weight) noexcept;
 
     Graph_Neuron* from_; ///< Указатель на начало ребра (нейрон)

@@ -4,22 +4,18 @@ namespace perc {
 
 Matrix_perceptron::Matrix_perceptron(int hidden_layer_sizes) noexcept: Perceptron(MATRIX_VIEW, hidden_layer_sizes)
 {
-    std::vector<int> layer_sizes;
-    layer_sizes.push_back(INPUT_SIZE);
+    layers_.resize(hidden_layer_sizes + 2);
 
     int temp_neuron_count_ = (hidden_layer_sizes < MAX_HIDDEN) ? 64 : 32;
 
-    // Генерируем размеры от большего к меньшему
-    for (int i = hidden_layer_sizes - 1; i >= 0; --i) {
-        layer_sizes.push_back(temp_neuron_count_ * (1 << i));
-    }
-    layer_sizes.push_back(COUNT_LETTERS);
+    layers_[hidden_layer_sizes + 1] = Matrix_Layer{temp_neuron_count_, COUNT_LETTERS};
 
-    layers_.resize(layer_sizes.size() - 1);
-
-    for (int i = 0; i < layers_.size(); ++i) {
-        layers_[i] = Matrix_Layer{layer_sizes[i], layer_sizes[i + 1]};
+    for (int i = hidden_layer_sizes; i > 0; --i) {
+        layers_[i] = Matrix_Layer{temp_neuron_count_ * 2, temp_neuron_count_};
+        temp_neuron_count_ *= 2;
     }
+
+    layers_[0] = Matrix_Layer{INPUT_SIZE, temp_neuron_count_};
 
     for (auto& layer : layers_)
         layer.setRandomWeights();
@@ -49,9 +45,9 @@ void Matrix_perceptron::sumFunc() noexcept {
 
         layer.output_vector_.resize(layer.neurons_.size());
 
-        for (int j = 0; j < layer.neurons_.size(); ++j)
+        for (int i = 0; i < layer.neurons_.size(); ++i)
         {
-            Matrix_Neuron& neuron = layer.neurons_[j];
+            Matrix_Neuron& neuron = layer.neurons_[i];
 
             float sum = neuron.bias_;
 
@@ -61,7 +57,7 @@ void Matrix_perceptron::sumFunc() noexcept {
 
             neuron.output_ = neuron.sigmoidalFunc(sum);
 
-            layer.output_vector_[j] = neuron.output_;
+            layer.output_vector_[i] = neuron.output_;
         }
     }
 }
@@ -90,11 +86,10 @@ float Matrix_perceptron::backPropagation(float expected_[OUTPUT_SIZE]) noexcept 
         Matrix_Neuron& neuron_ = layer.neurons_[i];
         float o = neuron_.output_;
         neuron_.deltas_ = (o - expected_[i]) * o * (1. - o);
-        
     }
 
     //обработка слоев с конца
-    for (int i = hidden_layers_count_; i > 0; i--) {
+    for (int i = hidden_layers_count_; i > -1; i--) {
         Matrix_Layer& layer_current = layers_[i];
         Matrix_Layer& layer_next = layers_[i + 1];
         
