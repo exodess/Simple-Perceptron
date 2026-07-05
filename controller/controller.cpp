@@ -47,7 +47,8 @@ namespace perc {
 
         // Начинаем проверку и замеряем время
         auto begin_time = std::chrono::steady_clock::now();
-        for (int i = 0; i < data.size(); ++i) {
+        int total_size = data.size();
+        for (int i = 0; i < total_size; ++i) {
             // Берем рандомный датасет из списка
             int rand_emnist = std::rand() % data.size();
 
@@ -64,14 +65,14 @@ namespace perc {
         // Фиксируем конец проверки
         auto end_time = std::chrono::steady_clock::now();
 
-        if (data.size() > 0) {
+        if (total_size > 0) {
             // Считаем долю правильных ответов
-            result.accuracy() = static_cast<float>(count_correct_res) / data.size();
+            result.accuracy() = static_cast<float>(count_correct_res) / total_size;
 
             // Считаем среднюю долю правильных ответов по классам
             float sum_precisions = 0.0f;
             for (auto m : correct_particular_res) {
-                sum_precisions += static_cast<float>(m.second / particular_res[m.first]);
+                sum_precisions += static_cast<float>(m.second) / particular_res[m.first];
             }
             result.precision() = sum_precisions / correct_particular_res.size();
 
@@ -125,10 +126,11 @@ namespace perc {
         std::vector<float> error_values(count_epoch);
 
         if (data.size()) {
+            std::random_device rd;
+            std::mt19937 g(rd());
+            std::ranges::shuffle(data.begin(), data.end(), g);
+
             for (auto i = 0; i < count_epoch; ++i) {
-                std::random_device rd;
-                std::mt19937 g(rd());
-                std::ranges::shuffle(data.begin(), data.end(), g);
 
                 auto res = perceptron_->Train(data);
                 error_values[i] = res;
