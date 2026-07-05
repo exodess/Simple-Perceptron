@@ -93,6 +93,7 @@ namespace gui {
             ui_->slider_TestSample->setVisible(true);
             ui_->label_TestSampleStatus->setVisible(true);
             ui_->label_TestSampleStatus->setText("Загружен файл " + QFileInfo(fileName).fileName());
+            ui_->label_GlobalStatus->setText("Выбрана тестовая выборка");
         }
     }
 
@@ -101,15 +102,19 @@ namespace gui {
     }
 
     void MainWindow::on_btn_StartTesting_clicked() noexcept {
-        qDebug() << "Загружается файл с тестовой выборкой: " << current_test_sample_;
+        qDebug() << "Загружается файл с тестовой выборкой:" << current_test_sample_;
 
         try {
+            ui_->label_GlobalStatus->setText("Загружаем файл выборки в программу");
+            ui_->label_GlobalStatus->repaint();
+
             controller_->open(current_test_sample_.toStdString());
 
             qDebug() << "Начало прогона тестовой выборки";
 
+            ui_->label_GlobalStatus->setText("Идет тестирование перцептрона...");
+            ui_->label_GlobalStatus->repaint();
             auto res = controller_->testing(part_sample_);
-
 
             // Выводим на экран информацию из res
             ui_->label_TestAccuracy->setText(QString("Average accuracy: %1").arg(res.accuracy()));
@@ -119,11 +124,13 @@ namespace gui {
             ui_->label_TestTime->setText(QString("Time spent (sec): %1").arg(res.time() / 1000.0f));
             ui_->widget_TestMetricsCenter->setVisible(true);
 
-            qDebug() << "Тестирование завершено";
+            ui_->label_GlobalStatus->setText("Тестирование завершено");
         }
         catch (const std::exception& e) {
-            qDebug() << e.what();
+            ui_->label_GlobalStatus->setText(e.what());
         }
+
+        qDebug("Завершено");
     }
 
     void MainWindow::on_btn_LoadImage_clicked() noexcept {
@@ -162,26 +169,32 @@ namespace gui {
 
             ui_->label_TrainSampleStatus->setVisible(true);
             ui_->label_TrainSampleStatus->setText("Загружен файл " + QFileInfo(fileName).fileName());
+            ui_->label_GlobalStatus->setText("Выбрана тренировочная выборка");
         }
     }
 
     void MainWindow::on_btn_StartNormalTraining_clicked() noexcept {
         qDebug() << "Загружается файл с тренировочной выборкой: " << current_train_sample_;
         try {
+            ui_->label_GlobalStatus->setText("Файл с тренировочной выборкой загружается в программу");
+            ui_->label_GlobalStatus->repaint();
             controller_->open(current_train_sample_.toStdString());
 
-            qDebug() << "Начинается обучение перцептрона...";
+            ui_->label_GlobalStatus->setText("Идет стандартное обучение перцептрона...");
+            ui_->label_GlobalStatus->repaint();
             auto graphic_data = controller_->training(count_epochs_);
 
-            qDebug() << "Обучение завершено, строится график";
-            // Построение графика
+            ui_->label_GlobalStatus->setText("Строится график");
+            ui_->label_GlobalStatus->repaint();
             drawTrainGraph(graphic_data);
 
-            qDebug() << "График построен\n";
+            ui_->label_GlobalStatus->setText("Обучение завершено");
         }
         catch (const std::exception& e) {
-            qDebug() << e.what();
+            ui_->label_GlobalStatus->setText(e.what());
         }
+
+        qDebug() << "Завершено";
     }
 
     void MainWindow::on_spin_CrossValidationK_valueChanged() noexcept {
@@ -191,13 +204,17 @@ namespace gui {
     void MainWindow::on_btn_StartCrossValidationTraining_clicked() noexcept {
         qDebug() << "Загружается файл с тренировочной выборкой: " << current_train_sample_;
         try {
+            ui_->label_GlobalStatus->setText("Файл с тренировочной выборкой загружается в программу");
+            ui_->label_GlobalStatus->repaint();
             controller_->open(current_train_sample_.toStdString());
 
-            qDebug() << "Начало обучения методом кросс-валидации";
-
+            ui_->label_GlobalStatus->setText("Идет стандартное обучение с применением кросс-валидации...");
+            ui_->label_GlobalStatus->repaint();
             auto res = controller_->crossValidation(k_);
 
-            qDebug() << "Выводятся метрики";
+            ui_->label_GlobalStatus->setText("Выводятся метрики");
+            ui_->label_GlobalStatus->repaint();
+
             ui_->group_CrossValResults->setVisible(true);
             ui_->label_ResAccuracy->setText(QString("Average accuracy: %1").arg(res.accuracy()));
             ui_->label_ResPrecision->setText(QString("Precision: %1").arg(res.precision()));
@@ -205,11 +222,13 @@ namespace gui {
             ui_->label_ResFMeasure->setText(QString("F-measure: %1").arg(res.recall()));
             ui_->label_ResTime->setText(QString("Time spent (sec): %1").arg(res.time() / 1000.0f));
 
-            qDebug() << "Процесс кросс-валидации окончен";
+            ui_->label_GlobalStatus->setText("Обучение завершено");
         }
         catch (const std::exception& e) {
-            qDebug() << e.what();
+            ui_->label_GlobalStatus->setText(e.what());
         }
+
+        qDebug() << "Завершено";
     }
 
     void MainWindow::on_combo_PerceptronType_indexChanged(int index) noexcept {
@@ -219,11 +238,13 @@ namespace gui {
             type = perc::MATRIX_VIEW;
 
             qDebug() << "Выбрана матричная реализация перцептрона";
+            ui_->label_GlobalStatus->setText("Выбрана матричная реализация перцептрона");
         }
         else {
             type = perc::GRAPH_VIEW;
 
             qDebug() << "Выбрана графовая реализация перцептрона";
+            ui_->label_GlobalStatus->setText("Выбрана графовая реализация перцептрона");
         }
 
         controller_->switchImplementation(type);
@@ -232,6 +253,7 @@ namespace gui {
     void MainWindow::on_spin_CountHiddenLayers_valueChanged() noexcept {
         int count = ui_->spin_HiddenLayers->value();
 
+        ui_->label_GlobalStatus->setText(QString("Изменено количество скрытых слоев: %1").arg(count));
         controller_->switchHiddenLayers(count);
     }
 
@@ -247,6 +269,7 @@ namespace gui {
 
             qDebug() << "Веса сохранены в файле " << fileName;
             controller_->saveWeights(fileName.toStdString());
+            ui_->label_GlobalStatus->setText("Веса перцептрона успешно сохранены!");
         }
     }
 
@@ -259,6 +282,7 @@ namespace gui {
             qDebug() << "Загружен файл " << fileName;
 
             controller_->open(fileName.toStdString());
+            ui_->label_GlobalStatus->setText("Веса перцептрона успешно загружены!");
         }
     }
 

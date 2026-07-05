@@ -23,6 +23,7 @@ QT_BEGIN_NAMESPACE
 class GUI_MainWindow {
 public:
     QWidget *widget_CentralWidget; ///< Центральный виджет окна
+    QVBoxLayout *layout_RootVertical; ///< Вертикальная корневая разметка
     QHBoxLayout *layout_RootHorizontal; ///< Горизонтальный корень
 
     // Панель навигации (левая колонка)
@@ -35,6 +36,8 @@ public:
 
     // Область содержимого (правая колонка)
     QStackedWidget *widget_ContentStack; ///< Переключаемые страницы
+
+    QLabel *label_GlobalStatus; ///< Общая информационная линия в самом низу
 
     // =================================
     // Содержимое страницы "Эксперимент"
@@ -144,10 +147,17 @@ public:
     void setupUI() {
         widget_CentralWidget = new QWidget();
 
+        // Создаем главный вертикальный контейнер для всего окна
+        layout_RootVertical = new QVBoxLayout(widget_CentralWidget);
+        layout_RootVertical->setContentsMargins(8, 8, 8, 8);
+        layout_RootVertical->setSpacing(6); // Небольшой отступ между контентом и статус-баром
+
+        // Создаем горизонтальный контейнер
         layout_RootHorizontal = new QHBoxLayout(widget_CentralWidget);
         layout_RootHorizontal->setContentsMargins(8, 8, 8, 8);
         layout_RootHorizontal->setSpacing(8);
 
+        // Инициализируем навигационную панель
         setupNavigationPanel();
 
         // Настройка Content Area
@@ -156,7 +166,32 @@ public:
         createTrainingPage();
         createLoadPage();
 
+        // Добавляем стек страниц в горизонтальный слой справа от меню
         layout_RootHorizontal->addWidget(widget_ContentStack, 1);
+
+        // Добавляем весь этот горизонтальный блок в главный вертикальный слой с фактором растяжения 1
+        layout_RootVertical->addLayout(layout_RootHorizontal, 1);
+
+        // 4. Создаем единую независимую информационную линию снизу
+        label_GlobalStatus = new QLabel("Программа готова к работе");
+
+        QFont font_Status = label_GlobalStatus->font();
+        font_Status.setPointSize(10);
+        font_Status.setItalic(true);
+        label_GlobalStatus->setFont(font_Status);
+
+        // Добавляем легкую визуальную границу сверху строки, чтобы аккуратно отделить её
+        label_GlobalStatus->setStyleSheet(
+            "QLabel {"
+            "  color: #555555;"
+            "  border-top: 1px solid #ccc;"
+            "  padding-top: 4px;"
+            "  padding-left: 2px;"
+            "}"
+        );
+
+        // Добавляем информационную линию в самый низ окна
+        layout_RootVertical->addWidget(label_GlobalStatus);
     }
 
     void setupNavigationPanel() {
