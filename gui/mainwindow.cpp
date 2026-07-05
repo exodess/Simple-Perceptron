@@ -2,14 +2,14 @@
 #include "data/data.h"
 #include <QFileDialog>
 #include <QMainWindow>
-#include <algorithm> // Для std::minmax_element
+#include <algorithm>
 
 namespace gui {
     MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui_{std::make_unique<GUI_MainWindow>()}
     , controller_(std::make_unique<perc::Controller>())
-    , part_sample_(1.0f)
+    , part_sample_(DEFAULT_PART_VALUE)
     , k_(DEFAULT_K)
     , count_epochs_(DEFAULT_COUNT_EPOCHS)
     {
@@ -89,7 +89,6 @@ namespace gui {
             qDebug() << "Загружен файл " << fileName;
 
             current_test_sample_ = fileName;
-            controller_->open(fileName.toStdString());
 
             ui_->slider_TestSample->setVisible(true);
             ui_->label_TestSampleStatus->setVisible(true);
@@ -102,7 +101,11 @@ namespace gui {
     }
 
     void MainWindow::on_btn_StartTesting_clicked() noexcept {
-        if (!current_test_sample_.isEmpty()) {
+        qDebug() << "Загружается файл с тестовой выборкой: " << current_test_sample_;
+
+        try {
+            controller_->open(current_test_sample_.toStdString());
+
             qDebug() << "Начало прогона тестовой выборки";
 
             auto res = controller_->testing(part_sample_);
@@ -117,6 +120,9 @@ namespace gui {
             ui_->widget_TestMetricsCenter->setVisible(true);
 
             qDebug() << "Тестирование завершено";
+        }
+        catch (const std::exception& e) {
+            qDebug() << e.what();
         }
     }
 
@@ -150,10 +156,9 @@ namespace gui {
             "CSV Files (*.csv);;All Files (*)");
 
         if (!fileName.isEmpty()) {
-            qDebug() << "Загружен файл " << fileName;
+            qDebug() << "Выбран файл " << fileName;
 
-            current_test_sample_ = fileName;
-            controller_->open(fileName.toStdString());
+            current_train_sample_ = fileName;
 
             ui_->label_TrainSampleStatus->setVisible(true);
             ui_->label_TrainSampleStatus->setText("Загружен файл " + QFileInfo(fileName).fileName());
@@ -161,14 +166,22 @@ namespace gui {
     }
 
     void MainWindow::on_btn_StartNormalTraining_clicked() noexcept {
-        qDebug() << "Начинается обучение перцептрона...";
+        qDebug() << "Загружается файл с тренировочной выборкой: " << current_train_sample_;
+        try {
+            controller_->open(current_train_sample_.toStdString());
 
-        auto graphic_data = controller_->training(count_epochs_);
+            qDebug() << "Начинается обучение перцептрона...";
+            auto graphic_data = controller_->training(count_epochs_);
 
-        // Построение графика
-        drawTrainGraph(graphic_data);
+            qDebug() << "Обучение завершено, строится график";
+            // Построение графика
+            drawTrainGraph(graphic_data);
 
-        qDebug() << "Обучение завершено";
+            qDebug() << "График построен\n";
+        }
+        catch (const std::exception& e) {
+            qDebug() << e.what();
+        }
     }
 
     void MainWindow::on_spin_CrossValidationK_valueChanged() noexcept {
@@ -176,18 +189,27 @@ namespace gui {
     }
 
     void MainWindow::on_btn_StartCrossValidationTraining_clicked() noexcept {
-        qDebug() << "Начало обучения методом кросс-валидации";
+        qDebug() << "Загружается файл с тренировочной выборкой: " << current_train_sample_;
+        try {
+            controller_->open(current_train_sample_.toStdString());
 
-        auto res = controller_->crossValidation(k_);
+            qDebug() << "Начало обучения методом кросс-валидации";
 
-        ui_->group_CrossValResults->setVisible(true);
-        ui_->label_ResAccuracy->setText(QString("Average accuracy: %1").arg(res.accuracy()));
-        ui_->label_ResPrecision->setText(QString("Precision: %1").arg(res.precision()));
-        ui_->label_ResRecall->setText(QString("Recall: %1").arg(res.recall()));
-        ui_->label_ResFMeasure->setText(QString("F-measure: %1").arg(res.recall()));
-        ui_->label_ResTime->setText(QString("Time spent (sec): %1").arg(res.time() / 1000.0f));
+            auto res = controller_->crossValidation(k_);
 
-        qDebug() << "Процесс кросс-валидации окончен";
+            qDebug() << "Выводятся метрики";
+            ui_->group_CrossValResults->setVisible(true);
+            ui_->label_ResAccuracy->setText(QString("Average accuracy: %1").arg(res.accuracy()));
+            ui_->label_ResPrecision->setText(QString("Precision: %1").arg(res.precision()));
+            ui_->label_ResRecall->setText(QString("Recall: %1").arg(res.recall()));
+            ui_->label_ResFMeasure->setText(QString("F-measure: %1").arg(res.recall()));
+            ui_->label_ResTime->setText(QString("Time spent (sec): %1").arg(res.time() / 1000.0f));
+
+            qDebug() << "Процесс кросс-валидации окончен";
+        }
+        catch (const std::exception& e) {
+            qDebug() << e.what();
+        }
     }
 
     void MainWindow::on_combo_PerceptronType_indexChanged(int index) noexcept {
@@ -224,8 +246,6 @@ namespace gui {
             }
 
             qDebug() << "Веса сохранены в файле " << fileName;
-
-            current_test_sample_ = fileName;
             controller_->saveWeights(fileName.toStdString());
         }
     }
@@ -238,7 +258,6 @@ namespace gui {
         if (!fileName.isEmpty()) {
             qDebug() << "Загружен файл " << fileName;
 
-            current_test_sample_ = fileName;
             controller_->open(fileName.toStdString());
         }
     }
