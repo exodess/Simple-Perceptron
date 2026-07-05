@@ -44,6 +44,8 @@ namespace gui {
         void on_slider_Sample_valueChanged() noexcept; ///< Обработка ползунка слайдера
         void on_btn_StartTesting_clicked() noexcept; ///< Обработка нажатия на кнопку запуска эксперимента на текущей тестовой выборке
         void on_btn_LoadImage_clicked() noexcept; ///< Обработка нажатия на кнопку загрузки BMP изображения
+        void on_btn_DrawImage_clicked() noexcept; ///< Обработка нажатия на кнопки "Нарисовать букву"
+        void on_btn_IdentifyLetter_clicked() noexcept; ///< Обработка нажатия на кнопку идентификации буквы по изображению пользователя
 
         // ==============================
         // ===== Страница "Обучение" ====
@@ -82,6 +84,7 @@ namespace gui {
 
         std::unique_ptr<GUI_MainWindow> ui_; ///< Управление пользовательским интерфейсом
         std::unique_ptr<perc::Controller> controller_; ///< Контроллер для управления всей внутренней логикой программы
+        QImage image_; ///< Изображение в формате BMP размером DEFAULT_WIDTH_RES * DEFAULT_HEIGHT_RES, которое загрузил пользователь
         QString current_test_sample_; ///< Название файла, откуда загружается тестовая выборка
         QString current_train_sample_; ///< Название файла, откуда загружается тренировочная выборка
         float part_sample_; ///< Какая часть тестовой выборки будет загружена

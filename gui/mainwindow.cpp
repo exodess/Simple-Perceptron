@@ -33,6 +33,8 @@ namespace gui {
         connect(ui_->slider_TestSample, &QSlider::valueChanged, this, &MainWindow::on_slider_Sample_valueChanged);
         connect(ui_->btn_StartTesting, &QPushButton::clicked, this, &MainWindow::on_btn_StartTesting_clicked);
         connect(ui_->btn_LoadImage, &QPushButton::clicked, this, &MainWindow::on_btn_LoadImage_clicked);
+        connect(ui_->btn_DrawLetter, &QPushButton::clicked, this, &MainWindow::on_btn_DrawImage_clicked);
+        connect(ui_->btn_Identify, &QPushButton::clicked, this, &MainWindow::on_btn_IdentifyLetter_clicked);
 
         connect(ui_->group_TrainNav, &QButtonGroup::idClicked, this, &MainWindow::on_btn_SubNavigationButton_clicked);
         connect(ui_->spin_EpochsGroups, &QSpinBox::valueChanged, this, &MainWindow::on_spin_CountEpochs_valueChanged);
@@ -134,17 +136,99 @@ namespace gui {
     }
 
     void MainWindow::on_btn_LoadImage_clicked() noexcept {
-        QString file_path = QFileDialog::getOpenFileName(
+        QString fileName = QFileDialog::getOpenFileName(
             this, "Открыть изображение", QString(),
             "Изображения (*.png *.jpg *.bmp)");
 
-        if (!file_path.isEmpty()) {
-            QPixmap pix(file_path);
-            if (!pix.isNull()) {
-                // Масштабируем строго до 28х28 согласно условию
-                ui_->label_ImagePreview->setPixmap(pix.scaled(28, 28, Qt::KeepAspectRatio, Qt::FastTransformation));
-                ui_->label_ImagePreview->setVisible(true);
+        if (!fileName.isEmpty()) {
+            qDebug() << "Загружен файл " << fileName;
+
+            // Загружаем изображение
+            QImage img(fileName);
+            if (img.isNull()) {
+                ui_->label_GlobalStatus->setText("Не удалось загрузить изображение");
+                return;
             }
+
+            // Конвертируем в 8-битные оттенки серого (1 байт на пиксель, 0-255)
+            img = img.convertToFormat(QImage::Format_Grayscale8);
+
+            // Масштабируем строго до необходимо размера
+            img = img.scaled(DEFAULT_WIDTH_RES, DEFAULT_HEIGHT_RES, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+            image_ = img;
+
+            // Загружаем BMP-файл в QPixmap
+            QPixmap pixmap(fileName);
+
+            // Проверяем, корректно ли загрузился файл
+            if (!pixmap.isNull()) {
+                // Рисуем квадратной формы
+                int w = pixmap.width();
+                int h = pixmap.height();
+                int side = qMin(w, h); // Берем меньшую сторону
+
+                int x = (w - side) / 2;
+                int y = (h - side) / 2;
+
+                // Сохраняем идеальный квадрат в переменную класса
+                pixmap = pixmap.copy(x, y, side, side);
+
+                // 2. МАСШТАБИРОВАНИЕ ПОД ТЕКУЩИЙ РАЗМЕР
+                // Вычисляем доступный размер внутри рамки QLabel (минус 2 пикселя на границы)
+                QSize display_size = ui_->label_ImagePreview->size() - QSize(2, 2);
+
+                // Масштабируем с сохранением пропорций и жесткими границами пикселей
+                pixmap = pixmap.scaled(
+                    display_size,
+                    Qt::KeepAspectRatio,
+                    Qt::FastTransformation
+                );
+
+                // Отображаем. QLabel сам отцентрирует этот квадрат внутри себя
+                ui_->label_ImagePreview->setPixmap(pixmap);
+                ui_->label_IdentifyResult->setVisible(false);
+            }
+
+            ui_->label_GlobalStatus->setText("Изображение сохранено");
+        }
+    }
+
+    void MainWindow::on_btn_DrawImage_clicked() noexcept {
+        ui_->label_GlobalStatus->setText("Изображение сохранено");
+    }
+
+    void MainWindow::on_btn_IdentifyLetter_clicked() noexcept {
+        if (!image_.isNull()) {
+            ui_->label_GlobalStatus->setText("Подготовка изображения к верификации");
+            ui_->label_GlobalStatus->repaint();
+
+            // Векторизация и нормализация в диапазон [0.0, 1.0]
+            std::vector<float> data_vector;
+            data_vector.reserve(DEFAULT_WIDTH_RES * DEFAULT_HEIGHT_RES);
+
+            // Проходим по пикселям. В формате Grayscale8 значение цвета совпадает с индексом серого
+            for (int y = 0; y < DEFAULT_HEIGHT_RES; ++y) {
+                for (int x = 0; x < DEFAULT_WIDTH_RES; ++x) {
+                    int pixel_val = qGray(image_.pixel(x, y));
+
+                    // Нормализуем значение (0 -> 0.0, 255 -> 1.0)
+                    float normalized = static_cast<float>(pixel_val) / 255.0f;
+                    data_vector.push_back(normalized);
+                }
+            }
+
+            ui_->label_GlobalStatus->setText("Перцептрон определяет букву на изображении...");
+            ui_->label_GlobalStatus->repaint();
+            auto res = controller_->verify(data_vector);
+
+            ui_->label_IdentifyResult->setVisible(true);
+            ui_->label_IdentifyResult->setText("Результат: " + QString(res));
+
+            ui_->label_GlobalStatus->setText("Верификация завершена");
+        }
+        else {
+            ui_->label_GlobalStatus->setText("Для начала загрузите готовое изображение или нарисуйте свое");
         }
     }
 

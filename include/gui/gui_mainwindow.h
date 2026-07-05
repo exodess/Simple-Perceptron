@@ -65,10 +65,19 @@ public:
 
     // Область "Загрузить"
     QGroupBox *group_LoadSingle;
-    QHBoxLayout *layout_LoadSingleRoot;
+    QVBoxLayout *layout_LoadSingleRoot;
+    QHBoxLayout *layout_LoadSingleTopRow; ///< Строка для верхних кнопок
     QPushButton *btn_LoadImage; ///< Кнопка "Загрузить готовую картинку"
-    QLabel *label_ImagePreview; ///< QLabel для вывода картинки 28*28
     QPushButton *btn_DrawLetter; ///< Кнопка "Нарисовать букву"
+
+    // Новая отдельная область для вывода BMP изображения
+    QGroupBox *group_PreviewArea; ///< Область "Просмотр BMP"
+    QVBoxLayout *layout_PreviewArea;
+    QLabel *label_ImagePreview; ///< QLabel для отрисовки картинки
+
+    QHBoxLayout *layout_LoadSingleBottomRow; ///< Строка для результатов и кнопки идентификации
+    QLabel *label_IdentifyResult; ///< Надпись "Результат: <буква>"
+    QPushButton *btn_Identify; ///< Кнопка "Идентифицировать"
 
     // ==============================
     // Содержимое страницы "Обучение"
@@ -332,46 +341,79 @@ public:
         group_LoadSingle->setFont(font_Group);
         group_LoadSingle->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-        layout_LoadSingleRoot = new QHBoxLayout(group_LoadSingle);
+        layout_LoadSingleRoot = new QVBoxLayout(group_LoadSingle);
         layout_LoadSingleRoot->setContentsMargins(16, 16, 16, 16);
-        layout_LoadSingleRoot->setSpacing(24);
+        layout_LoadSingleRoot->setSpacing(12);
 
-        // Левая колонка: кнопка для картинки и превью под ней
-        auto *widget_LeftColumn = new QWidget;
-        auto *layout_LeftColumn = new QVBoxLayout(widget_LeftColumn);
-        layout_LeftColumn->setContentsMargins(0, 0, 0, 0);
-        layout_LeftColumn->setSpacing(12);
-        layout_LeftColumn->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+        // Верхний уровень: управляющие кнопки
+        layout_LoadSingleTopRow = new QHBoxLayout();
+        layout_LoadSingleTopRow->setContentsMargins(0, 0, 0, 0);
+        layout_LoadSingleTopRow->setSpacing(12);
 
         btn_LoadImage = new QPushButton("Загрузить готовую картинку");
         btn_LoadImage->setFont(font_Normal);
         btn_LoadImage->setFixedWidth(260);
-        layout_LeftColumn->addWidget(btn_LoadImage);
-
-        label_ImagePreview = new QLabel;
-        label_ImagePreview->setFixedSize(28, 28);
-        label_ImagePreview->setStyleSheet("background-color: #ffffff; border: 1px solid #ccc;");
-        label_ImagePreview->setVisible(false); // Скрыта до момента загрузки изображения
-        layout_LeftColumn->addWidget(label_ImagePreview);
-
-        layout_LoadSingleRoot->addWidget(widget_LeftColumn);
-
-        // Правая колонка: кнопка "Нарисовать букву"
-        auto *widget_RightColumn = new QWidget;
-        auto *layout_RightColumn = new QVBoxLayout(widget_RightColumn);
-        layout_RightColumn->setContentsMargins(0, 0, 0, 0);
-        layout_RightColumn->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
         btn_DrawLetter = new QPushButton("Нарисовать букву");
         btn_DrawLetter->setFont(font_Normal);
         btn_DrawLetter->setFixedWidth(180);
-        layout_RightColumn->addWidget(btn_DrawLetter);
 
-        layout_LoadSingleRoot->addWidget(widget_RightColumn);
-        layout_LoadSingleRoot->addStretch(); // Сдвигает обе колонки к левому краю области
+        layout_LoadSingleTopRow->addWidget(btn_LoadImage);
+        layout_LoadSingleTopRow->addWidget(btn_DrawLetter);
+        layout_LoadSingleTopRow->addStretch(); // Сдвигает кнопки к левому краю
+        layout_LoadSingleRoot->addLayout(layout_LoadSingleTopRow);
+
+        // Средний уровень: Отдельная центральная область просмотра BMP
+        group_PreviewArea = new QGroupBox;
+        // Применяем чуть менее жирный шрифт для внутреннего подзаголовка
+        QFont font_SubGroup = font_Group;
+        font_SubGroup.setBold(false);
+        font_SubGroup.setItalic(true);
+        group_PreviewArea->setFont(font_SubGroup);
+        group_PreviewArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+        layout_PreviewArea = new QVBoxLayout(group_PreviewArea);
+        layout_PreviewArea->setContentsMargins(8, 12, 8, 8);
+
+        label_ImagePreview = new QLabel();
+        label_ImagePreview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        label_ImagePreview->setMinimumSize(200, 200);
+        // Белый фон внутри рамки области просмотра
+        label_ImagePreview->setStyleSheet("background-color: #ffffff; border: 1px solid #ccc;");
+        label_ImagePreview->setAlignment(Qt::AlignCenter);
+
+        layout_PreviewArea->addWidget(label_ImagePreview);
+        // Добавляем область в корень с фактором растяжения 1, чтобы она занимала все свободное место
+        layout_LoadSingleRoot->addWidget(group_PreviewArea, 1);
+
+        // Нижний уровень: Результат по центру и Кнопка справа
+        layout_LoadSingleBottomRow = new QHBoxLayout();
+        layout_LoadSingleBottomRow->setContentsMargins(0, 0, 0, 0);
+
+        // Первый stretch отталкивает надпись результата к центру
+        layout_LoadSingleBottomRow->addStretch(1);
+
+        label_IdentifyResult = new QLabel("");
+        QFont font_Result = font_Normal;
+        font_Result.setBold(true);
+        font_Result.setPointSize(13); // Сделаем результат чуть крупнее и заметнее
+        label_IdentifyResult->setFont(font_Result);
+        label_IdentifyResult->setAlignment(Qt::AlignCenter);
+        label_IdentifyResult->setVisible(false); // Скрыта до момента клика "Идентифицировать"
+        layout_LoadSingleBottomRow->addWidget(label_IdentifyResult);
+
+        // Второй stretch балансирует надпись ровно посередине и прижимает кнопку в крайнее правое положение
+        layout_LoadSingleBottomRow->addStretch(1);
+
+        btn_Identify = new QPushButton("Идентифицировать");
+        btn_Identify->setFont(font_Normal);
+        btn_Identify->setFixedWidth(200);
+        btn_Identify->setMinimumHeight(35);
+        layout_LoadSingleBottomRow->addWidget(btn_Identify);
+
+        layout_LoadSingleRoot->addLayout(layout_LoadSingleBottomRow);
 
         layout_ExperimentalPage->addWidget(group_LoadSingle);
-
         widget_ContentStack->addWidget(widget_ExperimentalPage);
     }
 
