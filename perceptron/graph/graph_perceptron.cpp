@@ -1,4 +1,4 @@
-#include "../../include/perceptron/graph_perceptron.h"
+#include "perceptron/graph_perceptron.h"
 
 namespace perc {
 
@@ -98,14 +98,17 @@ void Graph_perceptron::updateWeights() noexcept {
     for (int l = 1; l < layers_.size(); ++l) {
         Graph_Layer& layer = layers_[l];
 
-        for (int i = 0; i < (int)layer.neurons_.size(); ++i) {
+        for (int i = 0; i < layer.neurons_.size(); ++i) {
             auto& neuron = layer.neurons_[i];
-                for (auto& input : neuron.inputs_) {
-                    input->weight_ -=  LEARNING_RATE * neuron.deltas_ * input->from_->output_;
-                }
+
+            neuron.bias_ -= LEARNING_RATE * neuron.deltas_;
+            for (auto& input : neuron.inputs_) {
+                input->weight_ -= LEARNING_RATE * neuron.deltas_ * input->from_->output_;
+            }
         }
     }
 }
+
 
 float Graph_perceptron::backPropagation(float expected_[OUTPUT_SIZE]) noexcept {
 
@@ -166,7 +169,7 @@ int Graph_perceptron::Verify(const std::vector<float>& image) noexcept  {
     return best_index_;
 }
 
-float Graph_perceptron::Train(  const std::vector<EmnistData>& data) noexcept {
+float Graph_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
 
     float epoch_loss{};
 
@@ -174,13 +177,13 @@ float Graph_perceptron::Train(  const std::vector<EmnistData>& data) noexcept {
         
         float y_training[OUTPUT_SIZE]{};
 
-        y_training[input.index() - 1] = 1;
+        y_training[input.index()] = 1;
 
         sumFunc(input.data());
         epoch_loss += backPropagation(y_training);
     }
 
-    return epoch_loss;
+    return epoch_loss / data.size();
 }
 
 void Graph_perceptron::LoadWeights(const std::vector<float>& data) noexcept {

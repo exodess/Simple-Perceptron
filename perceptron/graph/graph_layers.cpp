@@ -1,4 +1,5 @@
-#include "../../include/perceptron/graph_perceptron.h"
+#include "perceptron/graph_perceptron.h"
+
 namespace perc {
 
 Graph_Layer::Graph_Layer() noexcept: Layer() {}

@@ -1,5 +1,4 @@
-#include "../../include/perceptron/matrix_perceptron.h"
-#include <iostream>
+#include "perceptron/matrix_perceptron.h"
 
 namespace perc {
 
@@ -87,7 +86,6 @@ float Matrix_perceptron::backPropagation(float expected_[OUTPUT_SIZE]) noexcept 
         Matrix_Neuron& neuron_ = layer.neurons_[i];
         float o = neuron_.output_;
         neuron_.deltas_ = (o - expected_[i]) * o * (1. - o);
-        
     }
 
     //обработка слоев с конца
@@ -145,56 +143,15 @@ float Matrix_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
     for (auto& input : data) {
         float y_training[OUTPUT_SIZE]{};
         
-        y_training[input.index() - 1] = 1;
+        y_training[input.index()] = 1;
 
         setDataInput(input.data());
         sumFunc();
         epoch_loss += backPropagation(y_training);
     }
 
-    return epoch_loss;
+    return epoch_loss / data.size();
 }
-
-// float Matrix_perceptron::Train( std::vector<EmnistData>data) noexcept {
-
-//     float epoch_loss{};
-
-//     std::random_device rd;
-//     std::mt19937 g(rd());
-
-//     std::shuffle(data.begin(), data.end(), g);
-
-//     for (int i = 0; i < 5; ++i) {
-//         int study_accuracy{};
-
-//         for (auto& input : data) {
-//             float y_training[OUTPUT_SIZE]{};
-            
-//             y_training[input.index() - 1] = 1;
-
-//             setDataInput(input.data());
-//             sumFunc();
-//             epoch_loss += backPropagation(y_training);
-
-//             if (Verify(input.data()) == input.index() - 1)
-//                 ++study_accuracy;
-//         }
-//         std::cout << "study accuracy is " << study_accuracy;
-//     }
-
-//     int accuracy{};
-
-//     std::shuffle(data.begin(), data.end(), g);
-
-//     for (auto& x : data) {
-//         if (Verify(x.data()) == x.index() - 1)
-//             accuracy++;
-//     }
-
-//     std::cout << "accuracy is " << accuracy;
-
-//     return epoch_loss;
-// }
 
 void Matrix_perceptron::LoadWeights(const std::vector<float>& data) noexcept {
     std::vector<float> weights = data;
