@@ -7,15 +7,14 @@ Graph_perceptron::Graph_perceptron(int hidden_layers_count) noexcept: Perceptron
     std::vector<int> layer_sizes;
     layer_sizes.push_back(INPUT_SIZE);
     
-    int size = 32;
-
+    int base_size = (hidden_layers_count < MAX_HIDDEN) ? 64 : 32;
     for (int i = hidden_layers_count - 1; i >= 0; --i) {
-        layer_sizes.insert(layer_sizes.begin() + 1, size * (1 << i));
+        layer_sizes.push_back(base_size * (1 << i));
     }
 
     layer_sizes.push_back(COUNT_LETTERS);
     layers_.resize(layer_sizes.size());
-    
+
     for (int i = 0; i < layers_.size(); ++i) {
         int prev_size = (i == 0) ? 0 : layer_sizes[i - 1];
         layers_[i] = Graph_Layer{prev_size, layer_sizes[i]};
@@ -25,17 +24,17 @@ Graph_perceptron::Graph_perceptron(int hidden_layers_count) noexcept: Perceptron
     for (int i = 0; i < layers_.size() - 1; ++i)
         total_edges += layers_[i].neurons_.size() * layers_[i + 1].neurons_.size();
     all_edges_.reserve(total_edges);
-        
+
     for (int i = 0; i < layers_.size() - 1; ++i) {
         Graph_Layer& layer = layers_[i];
         Graph_Layer& next_layer = layers_[i + 1];
-        
+
         for (auto& neuron : layer.neurons_) {
             neuron.bias_ = 0.0;
             for (auto& next_neuron : next_layer.neurons_) {
                 next_neuron.bias_ = 0.0;
                 float weight = setRandomWeight();
-                
+
                 all_edges_.push_back(Edge{&neuron, &next_neuron, weight});
                 Edge* edge = &all_edges_.back();
                 neuron.outputs_.push_back(edge);
@@ -48,29 +47,29 @@ Graph_perceptron::Graph_perceptron(int hidden_layers_count) noexcept: Perceptron
 float Graph_perceptron::setRandomWeight() noexcept {
     static std::random_device rd;
     static  std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dist(-0.5, 0.5);
+    std::uniform_real_distribution<> dist(-0.5f, 0.5f);
 
     return dist(gen);
 }
 
 void Graph_perceptron::Reset() noexcept {
         
-    for (int i = 0; i < layers_.size() - 1; ++i) {
+    for (int i = 0; i < layers_.size(); ++i) {
         Graph_Layer& layer = layers_[i];
         Graph_Layer& next_layer = layers_[i + 1];
         int prev_size = layer.neurons_.size();
         
         for (auto& neuron : layer.neurons_) {
-            neuron.bias_ = 0.0;
+            neuron.bias_ = 0.0f;
         }
         
         for (auto& next_neuron : next_layer.neurons_) {
-            next_neuron.bias_ = 0.0;
+            next_neuron.bias_ = 0.0f;
         }
+    }
 
-        for (auto& edge : all_edges_) {
-            edge.weight_ = setRandomWeight();
-        }
+    for (auto& edge : all_edges_) {
+        edge.weight_ = setRandomWeight();
     }
 }
 
@@ -83,8 +82,8 @@ void Graph_perceptron::sumFunc(const std::vector<float>& normalize_input) noexce
     for (int l = 1; l < layers_.size(); ++l) {
         Graph_Layer& layer = layers_[l];
 
-        for (int i = 0; i < layer.neurons_.size(); ++i) {
-            Graph_Neuron& neuron = layer.neurons_[i];
+        for (int j = 0; j < layer.neurons_.size(); ++j) {
+            Graph_Neuron& neuron = layer.neurons_[j];
             float sum = neuron.bias_;
             for (auto& input : neuron.inputs_)
                 sum += input->from_->output_ * input->weight_;
@@ -118,23 +117,23 @@ float Graph_perceptron::backPropagation(float expected_[OUTPUT_SIZE]) noexcept {
     for (int i = 0; i < layer.neurons_.size(); ++i) {
         Graph_Neuron& neuron_ = layer.neurons_[i];
         float o = neuron_.output_;
-        neuron_.deltas_ = (o - expected_[i]) * o * (1. - o);
+        neuron_.deltas_ = (o - expected_[i]) * o * (1.0f - o);
         
     }
 
     //обработка слоев с конца
-    for (int i = hidden_layers_count_; i > -1; i--) {
+    for (int i = hidden_layers_count_; i > 0; i--) {
         Graph_Layer& layer_current = layers_[i];
         Graph_Layer& layer_next = layers_[i + 1];
         
         for (int g = 0; g < layer_current.neurons_.size(); ++g) {
             Graph_Neuron& neuron = layer_current.neurons_[g];
-            float error = 0.0;
+            float error = 0.0f;
 
             for (auto& output : neuron.outputs_) {
                 error += output->to_->deltas_ * output->weight_;
             }
-            neuron.deltas_ = error * neuron.output_ * (1.0 - neuron.output_);
+            neuron.deltas_ = error * neuron.output_ * (1.0f - neuron.output_);
         }
     }
 
@@ -187,15 +186,29 @@ float Graph_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
 }
 
 void Graph_perceptron::LoadWeights(const std::vector<float>& data) noexcept {
-    for (int i = 0; i < all_edges_.size(); ++i)
-        all_edges_[i].weight_ = data[i];
+    int i{};
+
+    for (int l = 1; l < layers_.size(); ++l) {
+        for (auto& neuron : layers_[l].neurons_) {
+            neuron.bias_ = data[i++];
+
+            for (auto& input_edge : neuron.inputs_) {
+                input_edge->weight_ = data[i++];
+            }
+        }
+    }
 }
 
 std::vector<float> Graph_perceptron::GetWeights() noexcept {
     std::vector<float> weights{};
 
-    for (int i = 0; i < all_edges_.size(); ++i)
-        weights.push_back(all_edges_[i].weight_);
+    for (int l = 1; l < layers_.size(); ++l) {
+        for (auto& neuron : layers_[l].neurons_) {
+            weights.push_back(neuron.bias_);
+
+            weights.insert(weights.end(), neuron.inputs_.begin(), neuron.inputs_.end());
+        }
+    }
 
     return weights;
 }

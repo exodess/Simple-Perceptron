@@ -4,18 +4,22 @@ namespace perc {
 
 Matrix_perceptron::Matrix_perceptron(int hidden_layer_sizes) noexcept: Perceptron(MATRIX_VIEW, hidden_layer_sizes)
 {
-    layers_.resize(hidden_layer_sizes + 2);
+    std::vector<int> layer_sizes;
+    layer_sizes.push_back(INPUT_SIZE);
 
     int temp_neuron_count_ = (hidden_layer_sizes < MAX_HIDDEN) ? 64 : 32;
 
-    layers_[hidden_layer_sizes + 1] = Matrix_Layer{temp_neuron_count_, COUNT_LETTERS};
-
-    for (int i = hidden_layer_sizes; i > 0; --i) {
-        layers_[i] = Matrix_Layer{temp_neuron_count_ * 2, temp_neuron_count_};
-        temp_neuron_count_ *= 2;
+    // Генерируем размеры от большего к меньшему
+    for (int i = hidden_layer_sizes - 1; i >= 0; --i) {
+        layer_sizes.push_back(temp_neuron_count_ * (1 << i));
     }
+    layer_sizes.push_back(COUNT_LETTERS);
 
-    layers_[0] = Matrix_Layer{INPUT_SIZE, temp_neuron_count_};
+    layers_.resize(layer_sizes.size() - 1);
+
+    for (int i = 0; i < layers_.size(); ++i) {
+        layers_[i] = Matrix_Layer{layer_sizes[i], layer_sizes[i + 1]};
+    }
 
     for (auto& layer : layers_)
         layer.setRandomWeights();
@@ -45,9 +49,9 @@ void Matrix_perceptron::sumFunc() noexcept {
 
         layer.output_vector_.resize(layer.neurons_.size());
 
-        for (int i = 0; i < layer.neurons_.size(); ++i)
+        for (int j = 0; j < layer.neurons_.size(); ++j)
         {
-            Matrix_Neuron& neuron = layer.neurons_[i];
+            Matrix_Neuron& neuron = layer.neurons_[j];
 
             float sum = neuron.bias_;
 
@@ -57,7 +61,7 @@ void Matrix_perceptron::sumFunc() noexcept {
 
             neuron.output_ = neuron.sigmoidalFunc(sum);
 
-            layer.output_vector_[i] = neuron.output_;
+            layer.output_vector_[j] = neuron.output_;
         }
     }
 }
@@ -90,7 +94,7 @@ float Matrix_perceptron::backPropagation(float expected_[OUTPUT_SIZE]) noexcept 
     }
 
     //обработка слоев с конца
-    for (int i = hidden_layers_count_; i > -1; i--) {
+    for (int i = hidden_layers_count_; i > 0; i--) {
         Matrix_Layer& layer_current = layers_[i];
         Matrix_Layer& layer_next = layers_[i + 1];
         
@@ -155,13 +159,14 @@ float Matrix_perceptron::Train(const std::vector<EmnistData>& data) noexcept {
 }
 
 void Matrix_perceptron::LoadWeights(const std::vector<float>& data) noexcept {
-    std::vector<float> weights = data;
     int i{};
 
     for (auto& layer : layers_) {
         for (auto& neuron : layer.neurons_) {
+            neuron.bias_ = data[i++];
+
             for (auto& weight : neuron.weights_) {
-                weight = weights[i++];
+                weight = data[i++];
             }
         }
     }
@@ -172,9 +177,9 @@ std::vector<float> Matrix_perceptron::GetWeights() noexcept {
 
     for (auto& layer : layers_) {
         for (auto& neuron : layer.neurons_) {
-            for (auto& weight : neuron.weights_) {
-                weights.push_back(weight);
-            }
+            weights.push_back(neuron.bias_);
+
+            weights.insert(weights.end(), neuron.weights_.begin(), neuron.weights_.end());
         }
     }
 
