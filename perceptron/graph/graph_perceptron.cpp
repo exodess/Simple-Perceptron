@@ -56,15 +56,9 @@ void Graph_perceptron::Reset() noexcept {
         
     for (int i = 0; i < layers_.size(); ++i) {
         Graph_Layer& layer = layers_[i];
-        Graph_Layer& next_layer = layers_[i + 1];
-        int prev_size = layer.neurons_.size();
         
         for (auto& neuron : layer.neurons_) {
             neuron.bias_ = 0.0f;
-        }
-        
-        for (auto& next_neuron : next_layer.neurons_) {
-            next_neuron.bias_ = 0.0f;
         }
     }
 
