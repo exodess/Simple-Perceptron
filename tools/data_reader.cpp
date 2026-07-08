@@ -1,6 +1,7 @@
 #include "tools/tools.h"
 #include <fstream>
 #include <stdexcept>
+#include <cstring>
 
 namespace perc {
     void DataReader::Read(const std::string &path_to_file) {
@@ -21,8 +22,9 @@ namespace perc {
         long count_element = file.tellg() / sizeof(float);
         result_data.reserve(count_element);
 
-        const long step = 256; // Количество ячеек, считываемых за один раз
+        const long step = 1024; // Количество ячеек, считываемых за один раз
         char buffer[sizeof(float) * step];
+        float buffer_data[step];
 
         // Читаем по count значений float с начала файла
         file.seekg(std::ios::beg);
@@ -31,7 +33,8 @@ namespace perc {
             std::size_t count = std::min(step, count_element);
             file.read(buffer, count * sizeof(float));
 
-            result_data.insert(result_data.end(), buffer, buffer + count * sizeof(float));
+            std::memcpy(buffer_data, buffer, count * sizeof(float));
+            result_data.insert(result_data.end(), buffer_data, buffer_data + count);
 
             count_element -= count;
         }
@@ -52,16 +55,18 @@ namespace perc {
             throw std::runtime_error("Couldn't open the file");
         }
 
-        const long step = 256; // Количество ячеек, считываемых за один раз
+        const long step = 1024; // Количество ячеек, считываемых за один раз
         long size_data = data.size();
         char buffer[sizeof(float) * step];
+        float buffer_data[step];
         auto it = data.begin();
 
         // Считываем по count значений float из вектора data
         while (size_data != 0) {
             std::size_t count = std::min(size_data, step);
 
-            std::copy(it, it + count, buffer);
+            std::copy(it, it + count, buffer_data);
+            std::memcpy(buffer, buffer_data, count * sizeof(float));
             file.write(buffer, count * sizeof(float));
 
             size_data -= count;
