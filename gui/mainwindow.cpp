@@ -1,5 +1,6 @@
 #include "gui/mainwindow.h"
 #include "data/data.h"
+#include "gui/drawing_dialog.h"
 #include <QFileDialog>
 #include <QMainWindow>
 #include <algorithm>
@@ -38,9 +39,10 @@ namespace gui {
 
         connect(ui_->group_TrainNav, &QButtonGroup::idClicked, this, &MainWindow::on_btn_SubNavigationButton_clicked);
         connect(ui_->spin_EpochsGroups, &QSpinBox::valueChanged, this, &MainWindow::on_spin_CountEpochs_valueChanged);
-        connect(ui_->btn_LoadTrainSample, &QPushButton::clicked, this, &MainWindow::on_btn_LoadTrainSample_clicked);
+        connect(ui_->btn_LoadNormalTrainSample, &QPushButton::clicked, this, &MainWindow::on_btn_LoadTrainSample_clicked);
         connect(ui_->btn_StartNormalTrain, &QPushButton::clicked, this, &MainWindow::on_btn_StartNormalTraining_clicked);
         connect(ui_->spin_KGroups, &QSpinBox::valueChanged, this, &MainWindow::on_spin_CrossValidationK_valueChanged);
+        connect(ui_->btn_LoadValidationTrainSample, &QPushButton::clicked, this, &MainWindow::on_btn_LoadTrainSample_clicked);
         connect(ui_->btn_StartCrossValTrain, &QPushButton::clicked, this, &MainWindow::on_btn_StartCrossValidationTraining_clicked);
 
         connect(ui_->combo_ImplMenu, &QComboBox::currentIndexChanged, this, &MainWindow::on_combo_PerceptronType_indexChanged);
@@ -143,59 +145,82 @@ namespace gui {
         if (!fileName.isEmpty()) {
             qDebug() << "Загружен файл " << fileName;
 
-            // Загружаем изображение
-            QImage img(fileName);
-            if (img.isNull()) {
-                ui_->label_GlobalStatus->setText("Не удалось загрузить изображение");
-                return;
-            }
-
-            // Конвертируем в 8-битные оттенки серого (1 байт на пиксель, 0-255)
-            img = img.convertToFormat(QImage::Format_Grayscale8);
-
-            // Масштабируем строго до необходимо размера
-            img = img.scaled(DEFAULT_WIDTH_RES, DEFAULT_HEIGHT_RES, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-
-            image_ = img;
-
-            // Загружаем BMP-файл в QPixmap
-            QPixmap pixmap(fileName);
-
-            // Проверяем, корректно ли загрузился файл
-            if (!pixmap.isNull()) {
-                // Рисуем квадратной формы
-                int w = pixmap.width();
-                int h = pixmap.height();
-                int side = qMin(w, h); // Берем меньшую сторону
-
-                int x = (w - side) / 2;
-                int y = (h - side) / 2;
-
-                // Сохраняем идеальный квадрат в переменную класса
-                pixmap = pixmap.copy(x, y, side, side);
-
-                // 2. МАСШТАБИРОВАНИЕ ПОД ТЕКУЩИЙ РАЗМЕР
-                // Вычисляем доступный размер внутри рамки QLabel (минус 2 пикселя на границы)
-                QSize display_size = ui_->label_ImagePreview->size() - QSize(2, 2);
-
-                // Масштабируем с сохранением пропорций и жесткими границами пикселей
-                pixmap = pixmap.scaled(
-                    display_size,
-                    Qt::KeepAspectRatio,
-                    Qt::FastTransformation
-                );
-
-                // Отображаем. QLabel сам отцентрирует этот квадрат внутри себя
-                ui_->label_ImagePreview->setPixmap(pixmap);
-                ui_->label_IdentifyResult->setVisible(false);
-            }
+            drawLetter(fileName);
 
             ui_->label_GlobalStatus->setText("Изображение сохранено");
         }
     }
 
+    void MainWindow::drawLetter(const QString &path_image) noexcept {
+        // Загружаем изображение
+        QImage img(path_image);
+        if (img.isNull()) {
+            ui_->label_GlobalStatus->setText("Не удалось загрузить изображение");
+            return;
+        }
+
+        // Конвертируем в 8-битные оттенки серого (1 байт на пиксель, 0-255)
+        img = img.convertToFormat(QImage::Format_Grayscale8);
+
+        // Масштабируем строго до необходимо размера
+        img = img.scaled(DEFAULT_WIDTH_RES, DEFAULT_HEIGHT_RES, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+        image_ = img;
+
+        // Загружаем BMP-файл в QPixmap
+        QPixmap pixmap(path_image);
+
+        // Проверяем, корректно ли загрузился файл
+        if (!pixmap.isNull()) {
+            // Рисуем квадратной формы
+            int w = pixmap.width();
+            int h = pixmap.height();
+            int side = qMin(w, h); // Берем меньшую сторону
+
+            int x = (w - side) / 2;
+            int y = (h - side) / 2;
+
+            // Сохраняем идеальный квадрат в переменную класса
+            pixmap = pixmap.copy(x, y, side, side);
+
+            // 2. МАСШТАБИРОВАНИЕ ПОД ТЕКУЩИЙ РАЗМЕР
+            // Вычисляем доступный размер внутри рамки QLabel (минус 2 пикселя на границы)
+            QSize display_size = ui_->label_ImagePreview->size() - QSize(2, 2);
+
+            // Масштабируем с сохранением пропорций и жесткими границами пикселей
+            pixmap = pixmap.scaled(
+                display_size,
+                Qt::KeepAspectRatio,
+                Qt::FastTransformation
+            );
+
+            // Отображаем. QLabel сам отцентрирует этот квадрат внутри себя
+            ui_->label_ImagePreview->setPixmap(pixmap);
+            ui_->label_IdentifyResult->setVisible(false);
+        }
+    }
+
+
     void MainWindow::on_btn_DrawImage_clicked() noexcept {
-        ui_->label_GlobalStatus->setText("Изображение сохранено");
+        ui_->label_GlobalStatus->setText("Ожидание рисования буквы пользователем...");
+
+        DrawingDialog dialog(this);
+
+        // exec() запускает модальный режим и ждет, пока пользователь нажмет "Готово" (accept) или закроет окно
+        if (dialog.exec() == QDialog::Accepted) {
+            // Формируем путь для сохранения временного файла в текущей директории программы
+            QString save_path = QDir::currentPath() + "/temp_drawn_letter.bmp";
+
+            if (dialog.saveToFile(save_path)) {
+                drawLetter(save_path);
+
+                ui_->label_GlobalStatus->setText("Рисунок успешно сохранен в BMP и загружен для анализа.");
+            } else {
+                ui_->label_GlobalStatus->setText("Ошибка: Не удалось сохранить нарисованное изображение в файл BMP");
+            }
+        } else {
+            ui_->label_GlobalStatus->setText("Рисование отменено");
+        }
     }
 
     void MainWindow::on_btn_IdentifyLetter_clicked() noexcept {
@@ -251,8 +276,10 @@ namespace gui {
 
             current_train_sample_ = fileName;
 
-            ui_->label_TrainSampleStatus->setVisible(true);
-            ui_->label_TrainSampleStatus->setText("Загружен файл " + QFileInfo(fileName).fileName());
+            ui_->label_NormalTrainSampleStatus->setVisible(true);
+            ui_->label_ValidationTrainSampleStatus->setVisible(true);
+            ui_->label_NormalTrainSampleStatus->setText("Загружен файл " + QFileInfo(fileName).fileName());
+            ui_->label_ValidationTrainSampleStatus->setText("Загружен файл " + QFileInfo(fileName).fileName());
             ui_->label_GlobalStatus->setText("Выбрана тренировочная выборка");
         }
     }
