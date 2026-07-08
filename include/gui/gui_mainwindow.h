@@ -92,13 +92,14 @@ public:
     QPushButton *btn_NormalTrain; ///< Кнопка "Обычное обучение"
     QPushButton *btn_CrossValTrain; ///< Кнопка "Обучение с кросс-валидацией"
     QStackedWidget *widget_TrainStack;
-    QPushButton *btn_LoadTrainSample; ///< Кнопка "Загрузить выборку"
-    QLabel *label_TrainSampleStatus; ///< Надпись "Загружена выборка: <имя_файла>"
-    QPushButton *btn_StartNormalTrain; ///< Кнопка "Начать обучение"
 
     // Подстраница "Обычное обучение"
     QWidget *widget_NormalTrainPage;
     QVBoxLayout *layout_NormalTrainPage;
+
+    QPushButton *btn_LoadNormalTrainSample; ///< Кнопка "Загрузить выборку"
+    QLabel *label_NormalTrainSampleStatus; ///< Надпись "Загружена выборка: <имя_файла>"
+    QPushButton *btn_StartNormalTrain; ///< Кнопка "Начать обучение"
 
     // Компоненты постоянного графика обучения
     QChartView *chartView_Training;
@@ -122,6 +123,8 @@ public:
     QLabel *label_KGroups;
     QSpinBox *spin_EpochsGroups; ///< Выбор количества групп k
 
+    QPushButton *btn_LoadValidationTrainSample; ///< Кнопка "Загрузить выборку"
+    QLabel *label_ValidationTrainSampleStatus; ///< Надпись "Загружена выборка: <имя_файла>"
     QPushButton *btn_StartCrossValTrain; ///< Кнопка "Начать обучение" (кросс-валидация)
 
     QGroupBox *group_CrossValResults; ///< Область "Результат"
@@ -482,29 +485,29 @@ public:
         layout_NormalTrainPage->addWidget(widget_CountEpochsSettings);
 
         // Строка 1: Кнопка "Загрузить выборку" (слева)
-        auto *rowLoadBtnWidget = new QWidget;
-        auto *layout_RowLoadBtn = new QHBoxLayout(rowLoadBtnWidget);
-        layout_RowLoadBtn->setContentsMargins(0, 0, 0, 0);
+        auto *rowLoadNormalBtnWidget = new QWidget;
+        auto *layout_RowLoadNormalBtn = new QHBoxLayout(rowLoadNormalBtnWidget);
+        layout_RowLoadNormalBtn->setContentsMargins(0, 0, 0, 0);
 
-        btn_LoadTrainSample = new QPushButton("Загрузить выборку");
-        btn_LoadTrainSample->setFixedWidth(180);
-        btn_LoadTrainSample->setFont(font_TrainNav);
-        layout_RowLoadBtn->addWidget(btn_LoadTrainSample);
-        layout_RowLoadBtn->addStretch(); // Сдвигает кнопку влево
-        layout_NormalTrainPage->addWidget(rowLoadBtnWidget);
+        btn_LoadNormalTrainSample = new QPushButton("Загрузить выборку");
+        btn_LoadNormalTrainSample->setFixedWidth(180);
+        btn_LoadNormalTrainSample->setFont(font_TrainNav);
+        layout_RowLoadNormalBtn->addWidget(btn_LoadNormalTrainSample);
+        layout_RowLoadNormalBtn->addStretch(); // Сдвигает кнопку влево
+        layout_NormalTrainPage->addWidget(rowLoadNormalBtnWidget);
 
         // Строка 2: Надпись статуса загрузки (ниже кнопки загрузки, слева)
         auto *rowStatusWidget = new QWidget;
         auto *layout_RowStatus = new QHBoxLayout(rowStatusWidget);
         layout_RowStatus->setContentsMargins(0, 0, 0, 0);
 
-        label_TrainSampleStatus = new QLabel("");
+        label_NormalTrainSampleStatus = new QLabel("");
         QFont font_Status = font_TrainNav;
         font_Status.setPointSize(11);
         font_Status.setItalic(true);
-        label_TrainSampleStatus->setFont(font_Status);
-        label_TrainSampleStatus->setVisible(false); // Скрыта до момента загрузки файла
-        layout_RowStatus->addWidget(label_TrainSampleStatus);
+        label_NormalTrainSampleStatus->setFont(font_Status);
+        label_NormalTrainSampleStatus->setVisible(false); // Скрыта до момента загрузки файла
+        layout_RowStatus->addWidget(label_NormalTrainSampleStatus);
         layout_RowStatus->addStretch(); // Сдвигает надпись влево
         layout_NormalTrainPage->addWidget(rowStatusWidget);
 
@@ -578,10 +581,42 @@ public:
 
         layout_CrossValTrainPage->addWidget(widget_CrossValSettings);
 
+        // Строка 1: Кнопка "Загрузить выборку" (слева)
+        auto *rowLoadValidationBtnWidget = new QWidget;
+        auto *layout_RowLoadValidationBtn = new QHBoxLayout(rowLoadValidationBtnWidget);
+        layout_RowLoadValidationBtn->setContentsMargins(0, 0, 0, 0);
+
+        btn_LoadValidationTrainSample = new QPushButton("Загрузить выборку");
+        btn_LoadValidationTrainSample->setFixedWidth(180);
+        btn_LoadValidationTrainSample->setFont(font_TrainNav);
+        layout_RowLoadValidationBtn->addWidget(btn_LoadValidationTrainSample);
+        layout_RowLoadValidationBtn->addStretch(); // Сдвигает кнопку влево
+        layout_CrossValTrainPage->addWidget(rowLoadValidationBtnWidget);
+
+        // Строка 2: Надпись статуса загрузки (ниже кнопки загрузки, слева)
+        auto *rowValidationStatusWidget = new QWidget;
+        auto *layout_RowValidationStatus = new QHBoxLayout(rowValidationStatusWidget);
+        layout_RowValidationStatus->setContentsMargins(0, 0, 0, 0);
+
+        label_ValidationTrainSampleStatus = new QLabel("");
+        label_ValidationTrainSampleStatus->setFont(font_Status);
+        label_ValidationTrainSampleStatus->setVisible(false); // Скрыта до момента загрузки файла
+        layout_RowValidationStatus->addWidget(label_ValidationTrainSampleStatus);
+        layout_RowValidationStatus->addStretch(); // Сдвигает надпись влево
+        layout_CrossValTrainPage->addWidget(rowValidationStatusWidget);
+
+        // Строка 3: Кнопка "Начать обучение" (справа, ширина по контенту)
+        auto *rowStartValidationBtnWidget = new QWidget;
+        auto *layout_RowStartValidationBtn = new QHBoxLayout(rowStartValidationBtnWidget);
+        layout_RowStartValidationBtn->setContentsMargins(0, 0, 0, 0);
+        layout_RowStartValidationBtn->addStretch(); // Сдвигает кнопку вправо
+
         btn_StartCrossValTrain = new QPushButton("Начать обучение");
         btn_StartCrossValTrain->setMinimumHeight(40);
         btn_StartCrossValTrain->setFont(font_TrainNav);
-        layout_CrossValTrainPage->addWidget(btn_StartCrossValTrain);
+        btn_StartCrossValTrain->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        layout_RowStartValidationBtn->addWidget(btn_StartCrossValTrain);
+        layout_CrossValTrainPage->addWidget(rowStartValidationBtnWidget);
 
         group_CrossValResults = new QGroupBox("Результат");
         QFont font_Group = group_CrossValResults->font();
@@ -589,7 +624,6 @@ public:
         font_Group.setBold(true);
         group_CrossValResults->setFont(font_Group);
         group_CrossValResults->setAlignment(Qt::AlignCenter);
-        group_CrossValResults->setVisible(false);
 
         layout_CrossValResults = new QVBoxLayout(group_CrossValResults);
         layout_CrossValResults->setSpacing(8);
