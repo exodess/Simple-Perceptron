@@ -1,56 +1,35 @@
 cmake_minimum_required(VERSION 3.19)
-project(Simple-Perceptron VERSION 0.0 LANGUAGES CXX)
 
 # настраиваем стандарт языка для компиляции
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Прописываем директории, куда будут сохранятся файлы компиляции
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin)
+
 # для работы Qt
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-# смотрим, чтобы были установлены необходимые пакеты
-find_package(Qt6 REQUIRED COMPONENTS Widgets Charts)
+project(Simple-Perceptron)
 
 # включение заголовочных файлов
 include_directories(include)
-file(GLOB tools_src_files "tools/*.cpp")
-file(GLOB gui_files "gui/*.cpp" "include/gui/*.h")
-file(GLOB matrix_perceptron_src_files "perceptron/matrix/*.cpp")
-file(GLOB graph_perceptron_src_files "perceptron/graph/*.cpp")
-file(GLOB controller_src_files "controller/*.cpp" )
-file(GLOB gtest_src_files "tests/*.cpp")
 
-# Статическая библиотека внутренней логики
-add_library(controller STATIC
-        ${controller_src_files}
-        ${matrix_perceptron_src_files}
-        ${graph_perceptron_src_files}
-        ${tools_src_files}
-)
+# Подключаем папки с исходным кодом и тестами
+add_subdirectory(src)
+add_subdirectory(tests)
 
-add_executable(Program main.cpp ${gui_files})
-target_link_libraries(Program PRIVATE
-        controller
-        Qt6::Widgets
-        Qt6::Charts
-)
+find_package(Doxygen)
 
-# ============================
-# === Тестирование с GTest ===
-# ============================
-
-find_package(GTest REQUIRED)
-include(GoogleTest)
-
-enable_testing() # чтобы можно было запускать через ctest
-
-add_executable(TestPerceptron ${gtest_src_files})
-
-target_include_directories(TestPerceptron PUBLIC)
-target_link_libraries(TestPerceptron
-        controller
-        GTest::gtest_main
-)
-
-gtest_discover_tests(TestPerceptron)
+if(DOXYGEN_FOUND)
+    add_custom_target(docs
+            COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Генерация документации..."
+            VERBATIM
+    )
+endif()
