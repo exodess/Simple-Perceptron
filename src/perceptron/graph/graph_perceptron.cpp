@@ -7,7 +7,7 @@ Graph_perceptron::Graph_perceptron(int hidden_layers_count) noexcept: Perceptron
     std::vector<int> layer_sizes;
     layer_sizes.push_back(INPUT_SIZE);
     
-    int base_size = (hidden_layers_count < MAX_HIDDEN) ? 64 : 32;
+    int base_size = OUTPUT_COUNT_NEURON;
     for (int i = hidden_layers_count - 1; i >= 0; --i) {
         layer_sizes.push_back(base_size * (1 << i));
     }

@@ -4,10 +4,9 @@ namespace perc {
 
 Matrix_perceptron::Matrix_perceptron(int hidden_layer_sizes) noexcept: Perceptron(MATRIX_VIEW, hidden_layer_sizes)
 {
+    int temp_neuron_count_ = OUTPUT_COUNT_NEURON;
+
     layers_.resize(hidden_layer_sizes + 2);
-
-    int temp_neuron_count_ = (hidden_layer_sizes < MAX_HIDDEN) ? 64 : 32;
-
     layers_[hidden_layer_sizes + 1] = Matrix_Layer{temp_neuron_count_, COUNT_LETTERS};
 
     for (int i = hidden_layer_sizes; i > 0; --i) {
