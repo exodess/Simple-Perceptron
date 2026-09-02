@@ -23,6 +23,7 @@ namespace perc {
             emnist_data_reader_->Read(path);
         } else if (file.extension().string() == WEIGHTS_SAVE_FILE_EXTENSION) {
             data_reader_->Read(path);
+            perceptron_->LoadWeights(data_reader_->data());
         } else {
             throw std::runtime_error("The file could not be recognized: " + file.filename().string());
         }
