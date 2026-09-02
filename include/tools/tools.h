@@ -62,7 +62,7 @@ namespace perc {
          * @param path Путь, куда нужно сохранять файл
          * @param data Массив данных, которые необходимо сохранить
          */
-        void saveData(const std::string& path, const std::vector<float>& data) noexcept;
+        void saveData(const std::string& path, const std::vector<float>& data);
     };
 
     /**

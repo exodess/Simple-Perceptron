@@ -27,10 +27,10 @@ namespace perc {
         float buffer_data[step];
 
         // Читаем по count значений float с начала файла
-        file.seekg(std::ios::beg);
+        file.seekg(0, std::ios::beg);
         while (count_element != 0) {
             // Количество ячеек float, которые считаются на этом шагу
-            std::size_t count = std::min(step, count_element);
+            auto count = std::min(step, count_element);
             file.read(buffer, count * sizeof(float));
 
             std::memcpy(buffer_data, buffer, count * sizeof(float));
@@ -44,7 +44,7 @@ namespace perc {
         data_ = result_data;
     }
 
-    void DataReader::saveData(const std::string &path, const std::vector<float> &data) noexcept {
+    void DataReader::saveData(const std::string &path, const std::vector<float> &data) {
         std::ofstream file;
         file.open(path, std::ios::binary);
 
