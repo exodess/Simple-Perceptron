@@ -369,9 +369,9 @@ namespace gui {
     }
 
     void MainWindow::on_btn_SaveWeights_clicked() noexcept {
-        QString fileName = QFileDialog::getOpenFileName(
+        QString fileName = QFileDialog::getSaveFileName(
             this, "Выберите файл для сохранения весов", QString(),
-            "All Files (*)");
+            "Weights File (*.weights);;All Files (*)");
 
         if (!fileName.isEmpty()) {
             if ("." + QFileInfo(fileName).suffix() != WEIGHTS_SAVE_FILE_EXTENSION) {
