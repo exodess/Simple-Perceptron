@@ -122,26 +122,18 @@ namespace perc {
         return result / k;
     }
 
-    std::vector<float> Controller::training(int count_epoch) noexcept {
+    float Controller::training() noexcept {
         auto data = emnist_data_reader_->data();
-        std::vector<float> error_values(count_epoch);
 
-        if (data.size()) {
+        if (!data.empty()) {
             std::random_device rd;
             std::mt19937 g(rd());
             std::ranges::shuffle(data.begin(), data.end(), g);
 
-            for (auto i = 0; i < count_epoch; ++i) {
-
-                auto res = perceptron_->Train(data);
-                error_values[i] = res;
-            }
-        }
-        else {
-            error_values = std::vector<float>(count_epoch, 1.0f);
+            return perceptron_->Train(data);
         }
 
-        return error_values;
+        return 1.0f;
     }
 
     void Controller::switchImplementation(PerceptronType type) noexcept {

@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include <QMainWindow>
 #include <algorithm>
+#include <chrono>
 
 namespace gui {
     MainWindow::MainWindow(QWidget *parent)
@@ -66,9 +67,6 @@ namespace gui {
         // Накладываем новые точки на уже существующий в UI график
         ui_->series_Training->replace(points);
 
-        // Динамически пересчитываем границы осей под новые данные
-        ui_->axisX_Training->setRange(0, graph.size() - 1);
-
         auto [min_it, max_it] = std::minmax_element(graph.begin(), graph.end());
         float min_val = *min_it;
         float max_val = *max_it;
@@ -76,8 +74,6 @@ namespace gui {
         // Добавляем 5% свободного пространства сверху и снизу для красоты
         float offset = (max_val - min_val) * 0.05f;
         if (offset == 0.0f) offset = 0.1f; // Защита от деления на 0 / одинаковых значений
-
-        ui_->axisY_Training->setRange(min_val - offset, max_val + offset);
     }
 
     void MainWindow::on_btn_NavigationButton_clicked(int index) noexcept {
@@ -284,6 +280,12 @@ namespace gui {
         }
     }
 
+    static std::string getStdDuration(const std::chrono::duration<long> duration) {
+        std::chrono::hh_mm_ss hms{duration};
+
+        return std::format("{}hr {}m {}s", hms.hours().count(), hms.minutes().count(), hms.seconds().count());
+    }
+
     void MainWindow::on_btn_StartNormalTraining_clicked() noexcept {
         qDebug() << "Загружается файл с тренировочной выборкой: " << current_train_sample_;
         try {
@@ -291,13 +293,32 @@ namespace gui {
             ui_->label_GlobalStatus->repaint();
             controller_->open(current_train_sample_.toStdString());
 
-            ui_->label_GlobalStatus->setText("Идет стандартное обучение перцептрона...");
-            ui_->label_GlobalStatus->repaint();
-            auto graphic_data = controller_->training(count_epochs_);
+            std::vector<float> chart_data; // Храним значения точек графика
+            auto start = std::chrono::system_clock::now();
 
-            ui_->label_GlobalStatus->setText("Строится график");
-            ui_->label_GlobalStatus->repaint();
-            drawTrainGraph(graphic_data);
+            ui_->label_GlobalStatus->setText("Идет стандартное обучение перцептрона...");
+
+            for (auto i = 0; i < count_epochs_; ++i) {
+                auto start_epoch = std::chrono::system_clock::now();
+
+                auto res = controller_->training();
+                chart_data.push_back(res);
+
+                auto end_epoch = std::chrono::system_clock::now();
+
+                std::string status =
+                    "Идет стандартное обучение перцептрона... (Прошло с последнего обучения - " +
+                    getStdDuration(std::chrono::duration_cast<std::chrono::seconds>(end_epoch - start)) +
+                    ", время одной эпохи - " +
+                    getStdDuration(std::chrono::duration_cast<std::chrono::seconds>(end_epoch - start_epoch)) + ")";
+
+                ui_->label_GlobalStatus->setText(QString::fromStdString(status));
+                ui_->label_GlobalStatus->repaint();
+
+                // Обновляем график после получения нового значения
+                drawTrainGraph(chart_data);
+                QCoreApplication::processEvents();
+            }
 
             ui_->label_GlobalStatus->setText("Обучение завершено");
         }

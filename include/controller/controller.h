@@ -111,11 +111,11 @@ namespace perc {
         SuccessRate crossValidation(int k) noexcept;
 
         /**
-         * @brief Запускает обучение перцептрона
-         * @param count_epoch Количество эпох, заданное пользователем
-         * @return Характер изменения значения ошибки в зависимости от эпохи
+         * @brief Запускает обучение перцептрона один раз
+         * @return Значение ошибки в течении обучения
+         * @note Количество эпох отслеживается в классе приложения, для построения графика в реальном времени
          */
-        std::vector<float> training(int count_epoch) noexcept;
+        float training() noexcept;
 
         /**
          * @brief Переключает реализацию перцептрона
