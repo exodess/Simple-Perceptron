@@ -26,10 +26,29 @@ add_subdirectory(tests)
 find_package(Doxygen)
 
 if(DOXYGEN_FOUND)
-    add_custom_target(docs
-            COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
+    add_custom_target(dvi
+            COMMAND doxygen ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             COMMENT "Генерация документации..."
             VERBATIM
     )
 endif()
+
+add_custom_target(dist
+        COMMAND ${CMAKE_COMMAND} -E tar "czvf" "${CMAKE_BINARY_DIR}/Team_CPP7_MLP.tar.gz"
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/materials
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
+        ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Упаковка дистрибутива в архив..."
+        VERBATIM
+)
+
+add_custom_target(uninstall
+        COMMAND rm -rf ${CMAKE_BINARY_DIR}/bin ${CMAKE_BINARY_DIR}/lib
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Удаление программы..."
+        VERBATIM
+)
