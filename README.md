@@ -39,7 +39,7 @@ sudo apt install libgl1-mesa-dev qt6-base-dev qt6-tools-dev-tools libqt6charts6-
 
 Скопировать код из репозитория
 ```bash
-git clone https://github.com/exodess/Simple-Perceptron
+git clone git@github.com:exodess/Simple-Perceptron.git
 ```
 
 Скомпилировать приложение с помощью CMake
@@ -50,5 +50,5 @@ cmake --build build --target Program
 
 Запустить приложение
 ```bash
-./build/3DViewer
+./build/Program
 ```
